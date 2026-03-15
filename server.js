@@ -1,7 +1,9 @@
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { config as loadEnv } from 'dotenv';
 import { Telegraf } from 'telegraf';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -41,9 +43,36 @@ function initBot(botToken) {
     const bot = new Telegraf(botToken);
     process.once('SIGINT', () => bot.stop('SIGINT'));
     process.once('SIGTERM', () => bot.stop('SIGTERM'));
-    console.log(`Bot initialized`);
+    console.log(`Bot initialized.`);
     return bot;
 }
+
+function readDataObjectFromFile(dirPath, fileName) {
+    let dataObject = null;
+    const fullFilePath = `${dirPath}/${fileName}`;
+    try {
+        const outDir = resolve(__dirname, dirPath);
+        const raw = readFileSync(resolve(outDir, fileName), 'utf8');
+        dataObject = JSON.parse(raw);
+    } catch {
+        console.warn(`Error while trying to read from ${fullFilePath}`, error);
+    }
+    return dataObject;
+}
+
+function writeDataObjectToFile(dataObject, dirPath, fileName) {
+    const fullFilePath = `${dirPath}/${fileName}`;
+    console.log(`Writing to ${fullFilePath}...`);
+    try {
+        const outDir = resolve(__dirname, dirPath);
+        mkdirSync(outDir, { recursive: true });
+        writeFileSync(resolve(outDir, fileName), JSON.stringify(dataObject, null, 2));
+        console.log(`File ${fullFilePath} updated.`);
+    } catch (error) {
+        console.error(`Error while trying to write to ${fullFilePath}`, error);
+    }
+}
+
 
 function getTimeRemaining(futureDate) {
     const now = new Date();
@@ -150,11 +179,17 @@ async function go() {
     const playerStatusStr = await fetchPlayerStatusStr(DENI_PLAYER_ID) || `N/A`;
     const msg = `Next Game: ${nextGameInfoStr}\nDeni's status: ${playerStatusStr}`;
     console.log(msg);
-
-    const shouldReport = nextGameInfo.leftDays === 0 && nextGameInfo.leftHours < 12;
-    if (shouldReport) {
+    const playersLastStatus = readDataObjectFromFile('.', 'players-last-status.json');
+    const playerStatusChanged = playersLastStatus?.[DENI_PLAYER_ID] !== playerStatusStr;
+    if (playerStatusChanged) {
+        console.log(`Player status changed from ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'} to ${playerStatusStr}`);
+        writeDataObjectToFile({[DENI_PLAYER_ID]: playerStatusStr}, '.', 'players-last-status.json');
+    }
+    const isGameSoon = nextGameInfo.leftDays === 0 && nextGameInfo.leftHours < 12;
+    if (playerStatusChanged || isGameSoon) {
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);
+        console.log(`Reported to Telegram.`);
     } else {
         console.log(`Skip reporting to Telegram.`);
     }
