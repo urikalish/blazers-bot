@@ -33,9 +33,9 @@ jobs:
 
       - name: Run scheduled bot run
         env:
-          BOT_TOKEN_KEY: ${{ secrets.BOT_TOKEN_KEY }}
-          CHAT_ID_KEY: ${{ secrets.CHAT_ID_KEY }}
-        run: yarn update
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN_KEY }}
+          CHAT_ID: ${{ secrets.CHAT_ID_KEY }}
+        run: yarn start
 
       - name: Commit and push changes
         run: |
