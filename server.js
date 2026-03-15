@@ -1,10 +1,9 @@
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { config as loadEnv } from 'dotenv';
-
+import { Telegraf } from 'telegraf';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-import { Telegraf } from 'telegraf';
 
 function loadEnvVars() {
     const ENV_PATH = resolve(__dirname, '.env');
@@ -73,13 +72,14 @@ function getIsraelTimeStr(utcDate) {
 }
 
 async function fetchNextGameInfo(teamAbbr = 'por') {
-    const result = {
+    const gameInfo = {
         name: '',
         israelTimeStr: '',
         utcDateTime: null,
         leftDays: 0,
         leftHours: 0,
         leftMinutes: 0,
+        msg: ''
     };
     const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamAbbr}/schedule`;
     try {
@@ -90,43 +90,33 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
         );
         const nextGame = upcomingGames[0];
         if (nextGame) {
-            result.name = nextGame.name;
-            result.utcDateTime = new Date(nextGame.date);
-            result.israelTimeStr = getIsraelTimeStr(result.utcDateTime);
-            const timeRemaining = getTimeRemaining(result.utcDateTime);
-            result.leftDays = timeRemaining.days;
-            result.leftHours = timeRemaining.hours;
-            result.leftMinutes = timeRemaining.minutes;
+            gameInfo.name = nextGame.name;
+            gameInfo.utcDateTime = new Date(nextGame.date);
+            gameInfo.israelTimeStr = getIsraelTimeStr(gameInfo.utcDateTime);
+            const timeRemaining = getTimeRemaining(gameInfo.utcDateTime);
+            gameInfo.leftDays = timeRemaining.days;
+            gameInfo.leftHours = timeRemaining.hours;
+            gameInfo.leftMinutes = timeRemaining.minutes;
+            let timeLeftStr = '';
+            if (gameInfo.leftDays > 0) {
+                timeLeftStr = `${gameInfo.leftDays} day(s) and ${gameInfo.leftHours} hour(s)`;
+            } else if (gameInfo.leftHours > 0) {
+                timeLeftStr = `${gameInfo.leftHours} hour(s) and ${gameInfo.leftMinutes} minute(s)`;
+            } else if (gameInfo.leftMinutes > 0) {
+                timeLeftStr = `${gameInfo.leftMinutes} minute(s)`;
+            }
+            gameInfo.msg = `${gameInfo.name}\n${gameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`;
         } else {
             console.warn(`No upcoming games found for team ${teamAbbr}`);
-            return null;
         }
     } catch (error) {
-        console.error(`Error fetching schedule`, error);
-        return null;
+        console.error(`Error processing next game info`, error);
     }
-    return result;
+    return gameInfo;
 }
 
-async function getNextGame(teamAbbr) {
-    let result = `N/A`;
-    const nextGameInfo = await fetchNextGameInfo(teamAbbr);
-    if (nextGameInfo) {
-        let timeLeftStr = '';
-        if (nextGameInfo.leftDays > 0) {
-            timeLeftStr = `${nextGameInfo.leftDays} day(s) and ${nextGameInfo.leftHours} hour(s)`;
-        } else if (nextGameInfo.leftHours > 0) {
-            timeLeftStr = `${nextGameInfo.leftHours} hour(s) and ${nextGameInfo.leftMinutes} minute(s)`;
-        } else if (nextGameInfo.leftMinutes > 0) {
-            timeLeftStr = `${nextGameInfo.leftMinutes} minute(s)`;
-        }
-        result = `${nextGameInfo.name}\n${nextGameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`;
-    }
-    return result;
-}
-
-async function fetchPlayerStatus(playerId) {
-    let result = `N/A`;
+async function fetchPlayerStatusStr(playerId) {
+    let stausStr= '';
     try {
         const url = `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/${playerId}`;
         const response = await fetch(url);
@@ -136,38 +126,39 @@ async function fetchPlayerStatus(playerId) {
             if (injuries && injuries.length > 0) {
                 const status = injuries[0]?.details?.fantasyStatus?.description;
                 if (status) {
-                    result = status;
+                    stausStr = status;
                 }
             } else {
-                result = `ACT`;
+                stausStr = `ACT`;
             }
         } else {
             console.error(`Error fetching player status`, response.error);
         }
     } catch (error) {
-        console.error(`Error fetching player status`, error);
+        console.error(`Error processing player status`, error);
     }
-    return result;
-}
-
-async function fetchData() {
-    const DENI_PLAYER_ID = 4683021;
-    const TEAM_ABBR = 'por';
-    const nextGame = await getNextGame(TEAM_ABBR);
-    const playerStatus = await fetchPlayerStatus(DENI_PLAYER_ID);
-    return {
-        nextGame,
-        playerStatus
-    }
+    return stausStr;
 }
 
 async function go() {
+    const DENI_PLAYER_ID = 4683021;
+    const TEAM_ABBR = 'por';
     const {botToken, chatId} = loadEnvVars();
     const bot = initBot(botToken);
-    const data = await fetchData();
-    const msg = `Next Game: ${data.nextGame}\nDeni's status: ${data.playerStatus}`;
+    const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR);
+    const nextGameInfoStr = nextGameInfo.msg || `N/A`;
+    const playerStatusStr = await fetchPlayerStatusStr(DENI_PLAYER_ID) || `N/A`;
+    const msg = `Next Game: ${nextGameInfoStr}\nDeni's status: ${playerStatusStr}`;
     console.log(msg);
-    bot.telegram.sendMessage(chatId, msg).catch(console.error);
+
+    const shouldReport = nextGameInfo.leftDays === 0 && nextGameInfo.leftHours < 12;
+    if (shouldReport) {
+        console.log(`Reporting to Telegram...`);
+        bot.telegram.sendMessage(chatId, msg).catch(console.error);
+    } else {
+        console.log(`Skip reporting to Telegram.`);
+    }
+    console.log(`DONE.`);
 }
 
 go().catch(console.error);
