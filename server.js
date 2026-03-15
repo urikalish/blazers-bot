@@ -186,6 +186,7 @@ async function go() {
         writeDataObjectToFile({[DENI_PLAYER_ID]: playerStatusStr}, '.', 'players-last-status.json');
     }
     const isGameSoon = nextGameInfo.leftDays === 0 && nextGameInfo.leftHours < 12;
+    console.log(`Is game soon? ${isGameSoon ? 'Yes' : 'No'}`);
     if (playerStatusChanged || isGameSoon) {
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);
