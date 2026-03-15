@@ -153,8 +153,8 @@ async function fetchPlayerStatus(playerId) {
 async function fetchData() {
     const DENI_PLAYER_ID = 4683021;
     const TEAM_ABBR = 'por';
-    const playerStatus = await fetchPlayerStatus(DENI_PLAYER_ID);
     const nextGame = await getNextGame(TEAM_ABBR);
+    const playerStatus = await fetchPlayerStatus(DENI_PLAYER_ID);
     return {
         nextGame,
         playerStatus
@@ -165,7 +165,7 @@ async function go() {
     const {botToken, chatId} = loadEnvVars();
     const bot = initBot(botToken);
     const data = await fetchData();
-    const msg = `Next Game: ${data.nextGame}\n\nDeni's status: ${data.playerStatus}`;
+    const msg = `Next Game: ${data.nextGame}\nDeni's status: ${data.playerStatus}`;
     console.log(msg);
     bot.telegram.sendMessage(chatId, msg).catch(console.error);
 }
