@@ -184,6 +184,8 @@ async function go() {
     if (playerStatusChanged) {
         console.log(`Player status changed from ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'} to ${playerStatusStr}`);
         writeDataObjectToFile({[DENI_PLAYER_ID]: playerStatusStr}, '.', 'players-last-status.json');
+    } else {
+        console.log(`Player status did not change. Last known status: ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'}`);
     }
     const isGameSoon = nextGameInfo.leftDays === 0 && nextGameInfo.leftHours < 12;
     console.log(`Is game soon? ${isGameSoon ? 'Yes' : 'No'}`);
