@@ -1,0 +1,16 @@
+{
+  "name": "blazers-bot",
+  "version": "1.0.0",
+  "description": "Portland Trail Blazers Telegram bot.",
+  "author": "Uri Kalish",
+  "license": "ISC",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "telegraf": "^4.16.3"
+  }
+}
