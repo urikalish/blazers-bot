@@ -1,4 +1,4 @@
-name: Players Status Every 15m
+name: Players Status
 
 on:
   schedule:
