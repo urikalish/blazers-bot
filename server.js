@@ -204,10 +204,6 @@ async function handleNextGameInfo(bot, chatId) {
     console.log(`Handling next game info...`);
     const TEAM_ABBR = 'por';
     const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR);
-    const nextGameInfoStr = nextGameInfo.msg || `N/A`;
-    let msg = `Next Game: ${nextGameInfoStr}`;
-    console.log(msg);
-
     const lastGame = readDataObjectFromFile('.', 'last-game.json');
     const lastGameId = lastGame?.id ?? null;
     const isNewGame = !!nextGameInfo.id && nextGameInfo.id !== lastGameId;
@@ -216,6 +212,23 @@ async function handleNextGameInfo(bot, chatId) {
         console.log(`New game detected (id=${nextGameInfo.id}). Persisting to last-game.json...`);
         writeDataObjectToFile({ id: nextGameInfo.id }, '.', 'last-game.json');
     }
+
+    let timeLeftStr = '';
+    if (nextGameInfo.leftDays > 0) {
+        timeLeftStr = `${nextGameInfo.leftDays} day(s) and ${nextGameInfo.leftHours} hour(s)`;
+    } else if (nextGameInfo.leftHours > 0) {
+        timeLeftStr = `${nextGameInfo.leftHours} hour(s) and ${nextGameInfo.leftMinutes} minute(s)`;
+    } else if (nextGameInfo.leftMinutes > 0) {
+        timeLeftStr = `${nextGameInfo.leftMinutes} minute(s)`;
+    }
+    const dateAndTimeStr = nextGameInfo.israelTimeStr
+        ? `${nextGameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`
+        : null;
+    const nextGameInfoStr = isNewGame
+        ? (nextGameInfo.msg || `N/A`)
+        : (dateAndTimeStr || `N/A`);
+    let msg = `Next Game: ${nextGameInfoStr}`;
+    console.log(msg);
 
     const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
     const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
