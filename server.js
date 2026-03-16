@@ -195,24 +195,75 @@ async function handleNextGameInfo(bot, chatId) {
 
 async function handlePlayersStatusChanges(bot, chatId) {
     console.log(`Handling player status changes...`);
-    const DENI_PLAYER_ID = 4683021;
-    const playerStatusStr = await fetchPlayerStatusStr(DENI_PLAYER_ID) || `N/A`;
-    const msg = `Deni's status: ${playerStatusStr}`;
-    console.log(msg);
     const playersLastStatus = readDataObjectFromFile('.', 'players-last-status.json');
-    const playerStatusChanged = playersLastStatus?.[DENI_PLAYER_ID] !== playerStatusStr;
-    if (playerStatusChanged) {
-        console.log(`Player status changed from ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'} to ${playerStatusStr}`);
-        writeDataObjectToFile({[DENI_PLAYER_ID]: playerStatusStr}, '.', 'players-last-status.json');
-    } else {
-        console.log(`Player status did not change. Last known status: ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'}`);
+    if (!Array.isArray(playersLastStatus) || playersLastStatus.length === 0) {
+        console.log(`No players found in players-last-status.json. Skip handling player statuses.`);
+        return;
     }
-    if (playerStatusChanged) {
+
+    const validPlayers = playersLastStatus.filter((player) => {
+        const playerId = player?.playerId;
+        if (playerId === undefined || playerId === null) {
+            console.warn(`Skipping player entry without playerId`, player);
+            return false;
+        }
+        return true;
+    });
+
+    const resolvedPlayers = await Promise.all(
+        validPlayers.map(async (player) => {
+            const playerId = player.playerId;
+            const playerName = player?.name || `Player ${playerId}`;
+            const lastStatus = player?.status || `N/A`;
+            const playerStatusStr = await fetchPlayerStatusStr(playerId) || `N/A`;
+            return {
+                sourcePlayer: player,
+                playerId,
+                name: playerName,
+                oldStatus: lastStatus,
+                status: playerStatusStr,
+                changed: lastStatus !== playerStatusStr,
+            };
+        })
+    );
+
+    const updatedPlayers = [];
+    const changedPlayers = [];
+
+    for (const player of resolvedPlayers) {
+        console.log(`${player.name} (${player.playerId}) status: ${player.status}`);
+
+        if (player.changed) {
+            console.log(`Player status changed for ${player.name} from ${player.oldStatus} to ${player.status}`);
+            changedPlayers.push({
+                playerId: player.playerId,
+                name: player.name,
+                oldStatus: player.oldStatus,
+                newStatus: player.status,
+            });
+        } else {
+            console.log(`Player status did not change for ${player.name}. Last known status: ${player.oldStatus}`);
+        }
+
+        updatedPlayers.push({
+            ...player.sourcePlayer,
+            playerId: player.playerId,
+            name: player.name,
+            status: player.status,
+        });
+    }
+
+    writeDataObjectToFile(updatedPlayers, '.', 'players-last-status.json');
+
+    if (changedPlayers.length > 0) {
+        const msg = changedPlayers
+            .map(({ name, oldStatus, newStatus }) => `${name}: ${oldStatus} -> ${newStatus}`)
+            .join('\n');
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
     } else {
-        console.log(`Skip reporting to Telegram.`);
+        console.log(`Skip reporting to Telegram. No player status changes detected.`);
     }
 }
 
