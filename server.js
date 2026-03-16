@@ -272,7 +272,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
 
     if (changedPlayers.length > 0) {
         const msg = changedPlayers
-            .map(({ shirt, name, oldStatus, newStatus }) => `#${shirt} ${name}: ${oldStatus} -> ${newStatus}`)
+            .map(({ name, oldStatus, newStatus }) => `${name}: ${oldStatus} -> ${newStatus}`)
             .join('\n');
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);
