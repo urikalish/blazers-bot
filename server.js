@@ -228,8 +228,7 @@ async function handleNextGameInfo(bot, chatId) {
         ? `${nextGameInfo.name}\n${dateAndTimeStr}`
         : (nextGameInfo.msg || `N/A`);
     const existingGameInfoStr = dateAndTimeStr || `N/A`;
-    const nextGameInfoStr = isNewGame ? newGameInfoStr : existingGameInfoStr;
-    let msg = `Next Game: ${nextGameInfoStr}`;
+    let msg  = isNewGame ? newGameInfoStr : existingGameInfoStr;
     console.log(msg);
 
     const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
