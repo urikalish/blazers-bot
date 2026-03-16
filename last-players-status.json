@@ -63,7 +63,7 @@
     "id": 6606,
     "shirt": "0",
     "name": "D. Lillard",
-    "status": "ACT"
+    "status": "OFS"
   },
   {
     "id": 4433144,
@@ -81,7 +81,7 @@
     "id": 4914336,
     "shirt": "17",
     "name": "S. Sharpe",
-    "status": "ACT"
+    "status": "OUT"
   },
   {
     "id": 3907498,
@@ -99,12 +99,12 @@
     "id": 4066211,
     "shirt": "35",
     "name": "R. Williams",
-    "status": "ACT"
+    "status": "GTD"
   },
   {
     "id": 4706557,
     "shirt": "11",
     "name": "C. Youngblood",
-    "status": "ACT"
+    "status": "GTD"
   }
 ]
