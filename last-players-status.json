@@ -2,109 +2,109 @@
   {
     "id": 4683021,
     "shirt": "8",
-    "name": "D. Avdija",
+    "name": "Avdija",
     "status": "ACT"
   },
   {
     "id": 4431736,
     "shirt": "33",
-    "name": "T. Camara",
+    "name": "Camara",
     "status": "ACT"
   },
   {
     "id": 5081727,
     "shirt": "91",
-    "name": "S. Cissoko",
+    "name": "Cissoko",
     "status": "ACT"
   },
   {
     "id": 5105565,
     "shirt": "23",
-    "name": "D. Clingan",
+    "name": "Clingan",
     "status": "ACT"
   },
   {
     "id": 2991070,
     "shirt": "9",
-    "name": "J. Grant",
+    "name": "Grant",
     "status": "ACT"
   },
   {
     "id": 5217746,
     "shirt": "16",
-    "name": "Y. Hansen",
+    "name": "Hansen",
     "status": "ACT"
   },
   {
     "id": 4683678,
     "shirt": "00",
-    "name": "S. Henderson",
+    "name": "Henderson",
     "status": "ACT"
   },
   {
     "id": 3995,
     "shirt": "5",
-    "name": "J. Holiday",
+    "name": "Holiday",
     "status": "ACT"
   },
   {
     "id": 4703889,
     "shirt": "29",
-    "name": "J. Kent",
+    "name": "Kent",
     "status": "ACT"
   },
   {
     "id": 4578893,
     "shirt": "27",
-    "name": "V. Krejci",
+    "name": "Krejci",
     "status": "ACT"
   },
   {
     "id": 6606,
     "shirt": "0",
-    "name": "D. Lillard",
-    "status": "OFS"
+    "name": "Lillard",
+    "status": "ACT"
   },
   {
     "id": 4433144,
     "shirt": "2",
-    "name": "C. Love",
+    "name": "Love",
     "status": "ACT"
   },
   {
     "id": 4594326,
     "shirt": "24",
-    "name": "K. Murray",
+    "name": "Murray",
     "status": "ACT"
   },
   {
     "id": 4914336,
     "shirt": "17",
-    "name": "S. Sharpe",
-    "status": "OUT"
+    "name": "Sharpe",
+    "status": "ACT"
   },
   {
     "id": 3907498,
     "shirt": "4",
-    "name": "M. Thybulle",
+    "name": "Thybulle",
     "status": "ACT"
   },
   {
     "id": 4683935,
     "shirt": "1",
-    "name": "B. Wesley",
+    "name": "Wesley",
     "status": "ACT"
   },
   {
     "id": 4066211,
     "shirt": "35",
-    "name": "R. Williams",
-    "status": "GTD"
+    "name": "Williams",
+    "status": "ACT"
   },
   {
     "id": 4706557,
     "shirt": "11",
-    "name": "C. Youngblood",
-    "status": "GTD"
+    "name": "Youngblood",
+    "status": "ACT"
   }
 ]
