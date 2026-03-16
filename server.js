@@ -209,6 +209,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
                 return {
                     sourcePlayer: player,
                     playerId: null,
+                    shirt: player?.shirt || `N/A`,
                     name: player?.name || `Unknown Player`,
                     oldStatus: player?.status || `N/A`,
                     status: player?.status || `N/A`,
@@ -222,6 +223,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
             return {
                 sourcePlayer: player,
                 playerId,
+                shirt: player?.shirt || `N/A`,
                 name: playerName,
                 oldStatus: lastStatus,
                 status: playerStatusStr,
@@ -242,6 +244,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
             console.log(`Player status changed for ${player.name} from ${player.oldStatus} to ${player.status}`);
             changedPlayers.push({
                 playerId: player.playerId,
+                shirt: player.shirt,
                 name: player.name,
                 oldStatus: player.oldStatus,
                 newStatus: player.status,
@@ -260,7 +263,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
 
     if (changedPlayers.length > 0) {
         const msg = changedPlayers
-            .map(({ name, oldStatus, newStatus }) => `${name}: ${oldStatus} -> ${newStatus}`)
+            .map(({ shirt, name, oldStatus, newStatus }) => `#${shirt} ${name}: ${oldStatus} -> ${newStatus}`)
             .join('\n');
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);

@@ -1,91 +1,109 @@
 [
   {
     "id": 3995,
+    "shirt": "5",
     "name": "Jrue Holiday",
     "status": "ACT"
   },
   {
     "id": 2991070,
+    "shirt": "9",
     "name": "Jerami Grant",
     "status": "ACT"
   },
   {
     "id": 4683021,
+    "shirt": "8",
     "name": "Deni Avdija",
     "status": "ACT"
   },
   {
     "id": 6606,
+    "shirt": "0",
     "name": "Damian Lillard",
-    "status": "OFS"
+    "status": "ACT"
   },
   {
     "id": 4066211,
+    "shirt": "35",
     "name": "Robert Williams III",
     "status": "ACT"
   },
   {
     "id": 3907498,
+    "shirt": "4",
     "name": "Matisse Thybulle",
     "status": "ACT"
   },
   {
     "id": 4683678,
+    "shirt": "00",
     "name": "Scoot Henderson",
     "status": "ACT"
   },
   {
     "id": 4914336,
+    "shirt": "17",
     "name": "Shaedon Sharpe",
-    "status": "OUT"
+    "status": "ACT"
   },
   {
     "id": 5105565,
+    "shirt": "23",
     "name": "Donovan Clingan",
     "status": "ACT"
   },
   {
     "id": 4683935,
+    "shirt": "1",
     "name": "Blake Wesley",
     "status": "ACT"
   },
   {
     "id": 5217746,
+    "shirt": "16",
     "name": "Yang Hansen",
     "status": "ACT"
   },
   {
     "id": 4594326,
+    "shirt": "24",
     "name": "Kris Murray",
     "status": "ACT"
   },
   {
     "id": 4578893,
+    "shirt": "27",
     "name": "Vit Krejci",
     "status": "ACT"
   },
   {
     "id": 4431736,
+    "shirt": "33",
     "name": "Toumani Camara",
     "status": "ACT"
   },
   {
     "id": 5081727,
+    "shirt": "91",
     "name": "Sidy Cissoko",
     "status": "ACT"
   },
   {
     "id": 4706557,
+    "shirt": "11",
     "name": "Chris Youngblood",
-    "status": "OUT"
+    "status": "ACT"
   },
   {
     "id": 4433144,
+    "shirt": "2",
     "name": "Caleb Love",
     "status": "ACT"
   },
   {
     "id": 4703889,
+    "shirt": "29",
     "name": "Jayson Kent",
     "status": "ACT"
   }
