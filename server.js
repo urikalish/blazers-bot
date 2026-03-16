@@ -238,14 +238,14 @@ async function handleNextGameInfo(bot, chatId) {
 
 async function handlePlayersStatusChanges(bot, chatId) {
     console.log(`Handling player status changes...`);
-    const playersLastStatus = readDataObjectFromFile('.', 'players-last-status.json');
-    if (!Array.isArray(playersLastStatus) || playersLastStatus.length === 0) {
-        console.log(`No players found in players-last-status.json. Skip handling player statuses.`);
+    const lastPlayersStatus = readDataObjectFromFile('.', 'last-players-status.json');
+    if (!Array.isArray(lastPlayersStatus) || lastPlayersStatus.length === 0) {
+        console.log(`No players found in last-players-status.json. Skip handling player statuses.`);
         return;
     }
 
     const resolvedPlayers = await Promise.all(
-        playersLastStatus.map(async (player) => {
+        lastPlayersStatus.map(async (player) => {
             const playerId = player?.id;
             if (playerId === undefined || playerId === null) {
                 console.warn(`Skipping player entry without id`, player);
@@ -303,7 +303,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
         });
     }
 
-    const writeSucceeded = writeDataObjectToFile(updatedPlayers, '.', 'players-last-status.json');
+    const writeSucceeded = writeDataObjectToFile(updatedPlayers, '.', 'last-players-status.json');
     if (!writeSucceeded) {
         console.error(`Skip reporting to Telegram because state persistence failed.`);
         return;

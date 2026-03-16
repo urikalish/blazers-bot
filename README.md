@@ -27,7 +27,7 @@ The bot does two things when run:
 ```
 blazers-bot/
 ├── server.js                  # Main application logic (startup, API calls, message decisions, persistence)
-├── players-last-status.json   # Persisted player status state
+├── last-players-status.json   # Persisted player status state
 ├── last-game.json             # Persisted last known next-game ID (auto-created on first run)
 ├── package.json               # Dependencies and npm scripts
 └── .env                       # Secret credentials (not committed)
@@ -130,14 +130,14 @@ in 4 hour(s) and 30 minute(s)
 
 ### Player Status Check (`handlePlayersStatusChanges`)
 
-1. Reads the tracked player list from `players-last-status.json`.
+1. Reads the tracked player list from `last-players-status.json`.
 2. For each player, fetches their current status in parallel (`Promise.all`) from the ESPN athlete API:  
    `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{playerId}`
    - If injury data exists, reads `injuries[0].details.fantasyStatus.description`.
    - If no injuries are listed, defaults to `ACT`.
    - Returns `null` on request/processing errors (falls back to the previous status).
 3. Compares the fetched status to the last known status.
-4. Writes the updated statuses back to `players-last-status.json`.
+4. Writes the updated statuses back to `last-players-status.json`.
 5. If any player's status changed, sends a Telegram message listing all changes.
 
 **Example Telegram message:**
@@ -146,11 +146,11 @@ D. Avdija: ACT -> GTD
 J. Grant: OUT -> ACT
 ```
 
-> **Note:** If writing the updated state to `players-last-status.json` fails, the bot skips sending the Telegram message to avoid reporting stale changes on the next run.
+> **Note:** If writing the updated state to `last-players-status.json` fails, the bot skips sending the Telegram message to avoid reporting stale changes on the next run.
 
 ---
 
-## `players-last-status.json` Format
+## `last-players-status.json` Format
 
 This file tracks the last known status for each player. Edit it to add or remove players.
 
@@ -218,7 +218,7 @@ Most failures degrade gracefully by skipping sends or using fallback values.
 
 ## Maintenance Tips
 
-- Keep `players-last-status.json` valid JSON and include `id` for each player.
+- Keep `last-players-status.json` valid JSON and include `id` for each player.
 - To monitor only one feature in automation, use `players` or `game` mode.
 - If ESPN response schema changes, update the parsers in:
   - `fetchNextGameInfo`

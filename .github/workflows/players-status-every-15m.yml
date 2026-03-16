@@ -50,7 +50,7 @@ jobs:
             exit 0
           fi
 
-          git add players-last-status.json
-          git commit -m "chore: update players last status"
+          git add last-players-status.json
+          git commit -m "chore: update last players status"
           git push
 
