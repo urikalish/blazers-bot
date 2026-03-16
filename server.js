@@ -224,9 +224,11 @@ async function handleNextGameInfo(bot, chatId) {
     const dateAndTimeStr = nextGameInfo.israelTimeStr
         ? `${nextGameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`
         : null;
-    const nextGameInfoStr = isNewGame
-        ? (nextGameInfo.msg || `N/A`)
-        : (dateAndTimeStr || `N/A`);
+    const newGameInfoStr = nextGameInfo.name && dateAndTimeStr
+        ? `${nextGameInfo.name}\n${dateAndTimeStr}`
+        : (nextGameInfo.msg || `N/A`);
+    const existingGameInfoStr = dateAndTimeStr || `N/A`;
+    const nextGameInfoStr = isNewGame ? newGameInfoStr : existingGameInfoStr;
     let msg = `Next Game: ${nextGameInfoStr}`;
     console.log(msg);
 
