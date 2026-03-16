@@ -187,14 +187,15 @@ async function handleNextGameInfo(bot, chatId) {
     const TEAM_ABBR = 'por';
     const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR);
     const nextGameInfoStr = nextGameInfo.msg || `N/A`;
-    const msg = `Next Game: ${nextGameInfoStr}`;
+    let msg = `Next Game: ${nextGameInfoStr}`;
     console.log(msg);
     const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
-    if (isGameInProgress) {
-        console.log(`Game is currently in progress.`);
-    }
     const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
-    if (isGameSoon) {
+    if (isGameInProgress) {
+        msg = `Game is currently in progress.`;
+        console.log(msg);
+        await bot.telegram.sendMessage(chatId, msg).catch(console.error);
+    } else if (isGameSoon) {
         console.log(`Game is soon.`);
         console.log(`Reporting to Telegram...`);
         await bot.telegram.sendMessage(chatId, msg).catch(console.error);
