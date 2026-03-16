@@ -187,9 +187,15 @@ async function go() {
     } else {
         console.log(`Player status did not change. Last known status: ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'}`);
     }
-    const isGameSoon = nextGameInfo.leftDays === 0 && nextGameInfo.leftHours < 12;
-    console.log(`Is game soon? ${isGameSoon ? 'Yes' : 'No'}`);
-    if (playerStatusChanged || isGameSoon) {
+    const isGameInProgress = nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
+    if (isGameInProgress) {
+        console.log(`Game is currently in progress.`);
+    }
+    const isGameSoon = !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
+    if (isGameSoon) {
+        console.log(`Game is soon.`);
+    }
+    if (!isGameInProgress && (isGameSoon || playerStatusChanged)) {
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
