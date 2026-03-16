@@ -169,15 +169,35 @@ async function fetchPlayerStatusStr(playerId) {
     return stausStr;
 }
 
-async function go() {
-    const DENI_PLAYER_ID = 4683021;
+async function handleNextGameInfo(bot, chatId) {
+    console.log(`Handling next game info...`);
     const TEAM_ABBR = 'por';
-    const {botToken, chatId} = loadEnvVars();
-    const bot = initBot(botToken);
     const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR);
     const nextGameInfoStr = nextGameInfo.msg || `N/A`;
+    const msg = `Next Game: ${nextGameInfoStr}`;
+    console.log(msg);
+    const isGameInProgress = nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
+    if (isGameInProgress) {
+        console.log(`Game is currently in progress.`);
+    }
+    const isGameSoon = !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
+    if (isGameSoon) {
+        console.log(`Game is soon.`);
+    }
+    if (!isGameInProgress && isGameSoon) {
+        console.log(`Reporting to Telegram...`);
+        bot.telegram.sendMessage(chatId, msg).catch(console.error);
+        console.log(`Reported to Telegram.`);
+    } else {
+        console.log(`Skip reporting to Telegram.`);
+    }
+}
+
+async function handlePlayersStatusChanges(bot, chatId) {
+    console.log(`Handling player status changes...`);
+    const DENI_PLAYER_ID = 4683021;
     const playerStatusStr = await fetchPlayerStatusStr(DENI_PLAYER_ID) || `N/A`;
-    const msg = `Next Game: ${nextGameInfoStr}\nDeni's status: ${playerStatusStr}`;
+    const msg = `Deni's status: ${playerStatusStr}`;
     console.log(msg);
     const playersLastStatus = readDataObjectFromFile('.', 'players-last-status.json');
     const playerStatusChanged = playersLastStatus?.[DENI_PLAYER_ID] !== playerStatusStr;
@@ -187,21 +207,21 @@ async function go() {
     } else {
         console.log(`Player status did not change. Last known status: ${playersLastStatus?.[DENI_PLAYER_ID] || 'N/A'}`);
     }
-    const isGameInProgress = nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
-    if (isGameInProgress) {
-        console.log(`Game is currently in progress.`);
-    }
-    const isGameSoon = !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
-    if (isGameSoon) {
-        console.log(`Game is soon.`);
-    }
-    if (!isGameInProgress && (isGameSoon || playerStatusChanged)) {
+    if (playerStatusChanged) {
         console.log(`Reporting to Telegram...`);
         bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
     } else {
         console.log(`Skip reporting to Telegram.`);
     }
+}
+
+async function go() {
+    console.log(`GO!`);
+    const {botToken, chatId} = loadEnvVars();
+    const bot = initBot(botToken);
+    await handleNextGameInfo(bot, chatId);
+    await handlePlayersStatusChanges(bot, chatId);
     console.log(`DONE.`);
 }
 
