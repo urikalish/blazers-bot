@@ -28,6 +28,7 @@ The bot does two things when run:
 blazers-bot/
 ├── server.js                  # Main application logic (startup, API calls, message decisions, persistence)
 ├── players-last-status.json   # Persisted player status state
+├── last-game.json             # Persisted last known next-game ID (auto-created on first run)
 ├── package.json               # Dependencies and npm scripts
 └── .env                       # Secret credentials (not committed)
 ```
@@ -109,11 +110,14 @@ Any other mode throws: `Invalid mode "<mode>". Use: all | players | game`
 1. Fetches the Blazers schedule from the ESPN API:  
    `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/por/schedule`
 2. Selects the first upcoming event where the game is not completed.
-3. Builds a `gameInfo` object with the game name, UTC date, formatted Israel-local time string, time remaining (days/hours/minutes), and a formatted message.
-4. Sends a Telegram message in these cases:
+3. Builds a `gameInfo` object with the game ID, name, UTC date, formatted Israel-local time string, time remaining (days/hours/minutes), and a formatted message.
+4. Compares the game's ID against the one persisted in `last-game.json`.  
+   - If the ID is different (or the file doesn't exist yet), the game is considered **new** and the ID is saved to `last-game.json`.
+5. Sends a Telegram message in these cases:
    - **Game in progress** – tip-off time has already passed.
    - **Game is soon** – less than 12 hours until tip-off.
-5. Otherwise, skips silently.
+   - **New game** – first time this game has been retrieved, regardless of how far away it is.
+6. Otherwise, skips silently.
 
 **Example Telegram message:**
 ```

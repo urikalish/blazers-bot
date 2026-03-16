@@ -125,6 +125,7 @@ async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
 
 async function fetchNextGameInfo(teamAbbr = 'por') {
     const gameInfo = {
+        id: '',
         name: '',
         israelTimeStr: '',
         utcDateTime: null,
@@ -146,6 +147,7 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
         ) ?? [];
         const nextGame = upcomingGames[0];
         if (nextGame) {
+            gameInfo.id = nextGame.id;
             gameInfo.name = nextGame.name;
             gameInfo.utcDateTime = new Date(nextGame.date);
             gameInfo.israelTimeStr = getIsraelTimeStr(gameInfo.utcDateTime);
@@ -205,15 +207,28 @@ async function handleNextGameInfo(bot, chatId) {
     const nextGameInfoStr = nextGameInfo.msg || `N/A`;
     let msg = `Next Game: ${nextGameInfoStr}`;
     console.log(msg);
+
+    const lastGame = readDataObjectFromFile('.', 'last-game.json');
+    const lastGameId = lastGame?.id ?? null;
+    const isNewGame = !!nextGameInfo.id && nextGameInfo.id !== lastGameId;
+
+    if (isNewGame) {
+        console.log(`New game detected (id=${nextGameInfo.id}). Persisting to last-game.json...`);
+        writeDataObjectToFile({ id: nextGameInfo.id }, '.', 'last-game.json');
+    }
+
     const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
     const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
     if (isGameInProgress) {
         msg = `Game is currently in progress.`;
         console.log(msg);
         await bot.telegram.sendMessage(chatId, msg).catch(console.error);
-    } else if (isGameSoon) {
-        console.log(`Game is soon.`);
-        console.log(`Reporting to Telegram...`);
+    } else if (isGameSoon || isNewGame) {
+        if (isNewGame) {
+            console.log(`Reporting new game to Telegram...`);
+        } else {
+            console.log(`Game is soon. Reporting to Telegram...`);
+        }
         await bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
     } else {
