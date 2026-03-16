@@ -1,110 +1,110 @@
 [
-  {
-    "id": 3995,
-    "shirt": "5",
-    "name": "J. Holiday",
-    "status": "ACT"
-  },
-  {
-    "id": 2991070,
-    "shirt": "9",
-    "name": "J. Grant",
-    "status": "ACT"
-  },
-  {
-    "id": 4683021,
-    "shirt": "8",
-    "name": "D. Avdija",
-    "status": "ACT"
-  },
-  {
-    "id": 6606,
-    "shirt": "0",
-    "name": "D. Lillard",
-    "status": "OFS"
-  },
-  {
-    "id": 4066211,
-    "shirt": "35",
-    "name": "R. Williams",
-    "status": "ACT"
-  },
-  {
-    "id": 3907498,
-    "shirt": "4",
-    "name": "M. Thybulle",
-    "status": "ACT"
-  },
-  {
-    "id": 4683678,
-    "shirt": "00",
-    "name": "S. Henderson",
-    "status": "ACT"
-  },
-  {
-    "id": 4914336,
-    "shirt": "17",
-    "name": "S. Sharpe",
-    "status": "OUT"
-  },
-  {
-    "id": 5105565,
-    "shirt": "23",
-    "name": "D. Clingan",
-    "status": "ACT"
-  },
-  {
-    "id": 4683935,
-    "shirt": "1",
-    "name": "B. Wesley",
-    "status": "ACT"
-  },
-  {
-    "id": 5217746,
-    "shirt": "16",
-    "name": "Y. Hansen",
-    "status": "ACT"
-  },
-  {
-    "id": 4594326,
-    "shirt": "24",
-    "name": "K. Murray",
-    "status": "ACT"
-  },
-  {
-    "id": 4578893,
-    "shirt": "27",
-    "name": "V. Krejci",
-    "status": "ACT"
-  },
-  {
-    "id": 4431736,
-    "shirt": "33",
-    "name": "T. Camara",
-    "status": "ACT"
-  },
-  {
-    "id": 5081727,
-    "shirt": "91",
-    "name": "S. Cissoko",
-    "status": "ACT"
-  },
-  {
-    "id": 4706557,
-    "shirt": "11",
-    "name": "C. Youngblood",
-    "status": "OUT"
-  },
-  {
-    "id": 4433144,
-    "shirt": "2",
-    "name": "C. Love",
-    "status": "ACT"
-  },
-  {
-    "id": 4703889,
-    "shirt": "29",
-    "name": "J. Kent",
-    "status": "ACT"
-  }
+    {
+        "id":  4683021,
+        "shirt":  "8",
+        "name":  "D. Avdija",
+        "status":  "ACT"
+    },
+    {
+        "id":  4431736,
+        "shirt":  "33",
+        "name":  "T. Camara",
+        "status":  "ACT"
+    },
+    {
+        "id":  5081727,
+        "shirt":  "91",
+        "name":  "S. Cissoko",
+        "status":  "ACT"
+    },
+    {
+        "id":  5105565,
+        "shirt":  "23",
+        "name":  "D. Clingan",
+        "status":  "ACT"
+    },
+    {
+        "id":  2991070,
+        "shirt":  "9",
+        "name":  "J. Grant",
+        "status":  "ACT"
+    },
+    {
+        "id":  5217746,
+        "shirt":  "16",
+        "name":  "Y. Hansen",
+        "status":  "ACT"
+    },
+    {
+        "id":  4683678,
+        "shirt":  "00",
+        "name":  "S. Henderson",
+        "status":  "ACT"
+    },
+    {
+        "id":  3995,
+        "shirt":  "5",
+        "name":  "J. Holiday",
+        "status":  "ACT"
+    },
+    {
+        "id":  4703889,
+        "shirt":  "29",
+        "name":  "J. Kent",
+        "status":  "ACT"
+    },
+    {
+        "id":  4578893,
+        "shirt":  "27",
+        "name":  "V. Krejci",
+        "status":  "ACT"
+    },
+    {
+        "id":  6606,
+        "shirt":  "0",
+        "name":  "D. Lillard",
+        "status":  "ACT"
+    },
+    {
+        "id":  4433144,
+        "shirt":  "2",
+        "name":  "C. Love",
+        "status":  "ACT"
+    },
+    {
+        "id":  4594326,
+        "shirt":  "24",
+        "name":  "K. Murray",
+        "status":  "ACT"
+    },
+    {
+        "id":  4914336,
+        "shirt":  "17",
+        "name":  "S. Sharpe",
+        "status":  "ACT"
+    },
+    {
+        "id":  3907498,
+        "shirt":  "4",
+        "name":  "M. Thybulle",
+        "status":  "ACT"
+    },
+    {
+        "id":  4683935,
+        "shirt":  "1",
+        "name":  "B. Wesley",
+        "status":  "ACT"
+    },
+    {
+        "id":  4066211,
+        "shirt":  "35",
+        "name":  "R. Williams",
+        "status":  "ACT"
+    },
+    {
+        "id":  4706557,
+        "shirt":  "11",
+        "name":  "C. Youngblood",
+        "status":  "ACT"
+    }
 ]
