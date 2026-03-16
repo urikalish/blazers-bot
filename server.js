@@ -201,18 +201,21 @@ async function handlePlayersStatusChanges(bot, chatId) {
         return;
     }
 
-    const validPlayers = playersLastStatus.filter((player) => {
-        const playerId = player?.playerId;
-        if (playerId === undefined || playerId === null) {
-            console.warn(`Skipping player entry without playerId`, player);
-            return false;
-        }
-        return true;
-    });
-
     const resolvedPlayers = await Promise.all(
-        validPlayers.map(async (player) => {
-            const playerId = player.playerId;
+        playersLastStatus.map(async (player) => {
+            const playerId = player?.id;
+            if (playerId === undefined || playerId === null) {
+                console.warn(`Skipping player entry without id`, player);
+                return {
+                    sourcePlayer: player,
+                    playerId: null,
+                    name: player?.name || `Unknown Player`,
+                    oldStatus: player?.status || `N/A`,
+                    status: player?.status || `N/A`,
+                    changed: false,
+                };
+            }
+
             const playerName = player?.name || `Player ${playerId}`;
             const lastStatus = player?.status || `N/A`;
             const playerStatusStr = await fetchPlayerStatusStr(playerId) || `N/A`;
@@ -231,7 +234,9 @@ async function handlePlayersStatusChanges(bot, chatId) {
     const changedPlayers = [];
 
     for (const player of resolvedPlayers) {
-        console.log(`${player.name} (${player.playerId}) status: ${player.status}`);
+        if (player.playerId !== null) {
+            console.log(`${player.name} (${player.playerId}) status: ${player.status}`);
+        }
 
         if (player.changed) {
             console.log(`Player status changed for ${player.name} from ${player.oldStatus} to ${player.status}`);
@@ -247,8 +252,6 @@ async function handlePlayersStatusChanges(bot, chatId) {
 
         updatedPlayers.push({
             ...player.sourcePlayer,
-            playerId: player.playerId,
-            name: player.name,
             status: player.status,
         });
     }

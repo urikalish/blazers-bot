@@ -1,1 +1,92 @@
-[]
+[
+  {
+    "id": 3995,
+    "name": "Jrue Holiday",
+    "status": "ACT"
+  },
+  {
+    "id": 2991070,
+    "name": "Jerami Grant",
+    "status": "ACT"
+  },
+  {
+    "id": 4683021,
+    "name": "Deni Avdija",
+    "status": "ACT"
+  },
+  {
+    "id": 6606,
+    "name": "Damian Lillard",
+    "status": "ACT"
+  },
+  {
+    "id": 4066211,
+    "name": "Robert Williams III",
+    "status": "ACT"
+  },
+  {
+    "id": 3907498,
+    "name": "Matisse Thybulle",
+    "status": "ACT"
+  },
+  {
+    "id": 4683678,
+    "name": "Scoot Henderson",
+    "status": "ACT"
+  },
+  {
+    "id": 4914336,
+    "name": "Shaedon Sharpe",
+    "status": "ACT"
+  },
+  {
+    "id": 5105565,
+    "name": "Donovan Clingan",
+    "status": "ACT"
+  },
+  {
+    "id": 4683935,
+    "name": "Blake Wesley",
+    "status": "ACT"
+  },
+  {
+    "id": 5217746,
+    "name": "Yang Hansen",
+    "status": "ACT"
+  },
+  {
+    "id": 4594326,
+    "name": "Kris Murray",
+    "status": "ACT"
+  },
+  {
+    "id": 4578893,
+    "name": "Vit Krejci",
+    "status": "ACT"
+  },
+  {
+    "id": 4431736,
+    "name": "Toumani Camara",
+    "status": "ACT"
+  },
+  {
+    "id": 5081727,
+    "name": "Sidy Cissoko",
+    "status": "ACT"
+  },
+  {
+    "id": 4706557,
+    "name": "Chris Youngblood",
+    "status": "ACT"
+  },
+  {
+    "id": 4433144,
+    "name": "Caleb Love",
+    "status": "ACT"
+  },
+  {
+    "id": 4703889,
+    "name": "Jayson Kent",
+    "status": "ACT"
+  }
+]
