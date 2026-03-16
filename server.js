@@ -122,10 +122,14 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
     const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamAbbr}/schedule`;
     try {
         const response = await fetch(url);
+        if (!response.ok) {
+            console.error(`Error fetching next game info`, response.status, response.statusText);
+            return gameInfo;
+        }
         const data = await response.json();
         const upcomingGames = data.events?.filter(event =>
             event?.competitions?.[0]?.status?.type?.completed === false
-        );
+        ) ?? [];
         const nextGame = upcomingGames[0];
         if (nextGame) {
             gameInfo.name = nextGame.name;
@@ -189,11 +193,9 @@ async function handleNextGameInfo(bot, chatId) {
     if (isGameInProgress) {
         console.log(`Game is currently in progress.`);
     }
-    const isGameSoon = !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
+    const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
     if (isGameSoon) {
         console.log(`Game is soon.`);
-    }
-    if (isGameSoon) {
         console.log(`Reporting to Telegram...`);
         await bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
@@ -228,7 +230,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
 
             const playerName = player?.name || `Player ${playerId}`;
             const lastStatus = player?.status || `N/A`;
-            const playerStatusStr = await fetchPlayerStatusStr(playerId) || `N/A`;
+            const playerStatusStr = await fetchPlayerStatusStr(playerId) || lastStatus;
             return {
                 sourcePlayer: player,
                 playerId,
