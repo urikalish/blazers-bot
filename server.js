@@ -54,10 +54,19 @@ function readDataObjectFromFile(dirPath, fileName) {
         const outDir = resolve(__dirname, dirPath);
         const raw = readFileSync(resolve(outDir, fileName), 'utf8');
         dataObject = JSON.parse(raw);
-    } catch {
+    } catch (error) {
         console.warn(`Error while trying to read from ${fullFilePath}`, error);
     }
     return dataObject;
+}
+
+function getRunMode() {
+    const mode = (process.argv[2] || 'all').toLowerCase();
+    const allowedModes = new Set(['all', 'players', 'game']);
+    if (!allowedModes.has(mode)) {
+        throw new Error(`Invalid mode "${mode}". Use: all | players | game`);
+    }
+    return mode;
 }
 
 function writeDataObjectToFile(dataObject, dirPath, fileName) {
@@ -277,8 +286,13 @@ async function go() {
     console.log(`GO!`);
     const {botToken, chatId} = loadEnvVars();
     const bot = initBot(botToken);
-    await handleNextGameInfo(bot, chatId);
-    await handlePlayersStatusChanges(bot, chatId);
+    const runMode = getRunMode();
+    if (runMode === 'all' || runMode === 'game') {
+        await handleNextGameInfo(bot, chatId);
+    }
+    if (runMode === 'all' || runMode === 'players') {
+        await handlePlayersStatusChanges(bot, chatId);
+    }
     console.log(`DONE.`);
 }
 

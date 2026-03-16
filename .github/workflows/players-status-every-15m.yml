@@ -1,6 +1,9 @@
-name: Scheduled Bot Run
+name: Players Status Every 15m
 
 on:
+  schedule:
+    # Every 15 minutes, offset from :00 to avoid overlap with hourly game job
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -10,8 +13,11 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  bot-run:
+  players-run:
     runs-on: ubuntu-latest
+    concurrency:
+      group: players-status
+      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
@@ -28,11 +34,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run scheduled bot run
+      - name: Run players status check
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: yarn start -- all
+        run: yarn start -- players
 
       - name: Commit and push changes
         run: |
@@ -45,5 +51,6 @@ jobs:
           fi
 
           git add players-last-status.json
-          git commit -m "chore: scheduled bot run"
+          git commit -m "chore: update players last status"
           git push
+
