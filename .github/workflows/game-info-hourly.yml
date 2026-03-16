@@ -1,4 +1,4 @@
-name: Game Info Hourly
+name: Game Info
 
 on:
   schedule:
