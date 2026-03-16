@@ -77,8 +77,10 @@ function writeDataObjectToFile(dataObject, dirPath, fileName) {
         mkdirSync(outDir, { recursive: true });
         writeFileSync(resolve(outDir, fileName), JSON.stringify(dataObject, null, 2));
         console.log(`File ${fullFilePath} updated.`);
+        return true;
     } catch (error) {
         console.error(`Error while trying to write to ${fullFilePath}`, error);
+        return false;
     }
 }
 
@@ -109,6 +111,18 @@ function getIsraelTimeStr(utcDate) {
     return utcDate.toLocaleString('en-GB', options);
 }
 
+const FETCH_TIMEOUT_MS = 10000;
+
+async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { signal: controller.signal });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 async function fetchNextGameInfo(teamAbbr = 'por') {
     const gameInfo = {
         name: '',
@@ -121,7 +135,7 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
     };
     const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamAbbr}/schedule`;
     try {
-        const response = await fetch(url);
+        const response = await fetchWithTimeout(url);
         if (!response.ok) {
             console.error(`Error fetching next game info`, response.status, response.statusText);
             return gameInfo;
@@ -158,17 +172,19 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
 }
 
 async function fetchPlayerStatusStr(playerId) {
-    let statusStr = '';
+    let statusStr = null;
     try {
         const url = `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/${playerId}`;
-        const response = await fetch(url);
+        const response = await fetchWithTimeout(url);
         if (response.ok) {
             const json = await response.json();
             const injuries = json.athlete?.injuries;
             if (injuries && injuries.length > 0) {
                 const status = injuries[0]?.details?.fantasyStatus?.description;
-                if (status) {
+                if (typeof status === 'string' && status.trim() !== '') {
                     statusStr = status;
+                } else {
+                    console.warn(`Player status payload missing/invalid for playerId=${playerId}`);
                 }
             } else {
                 statusStr = `ACT`;
@@ -231,7 +247,8 @@ async function handlePlayersStatusChanges(bot, chatId) {
 
             const playerName = player?.name || `Player ${playerId}`;
             const lastStatus = player?.status || `N/A`;
-            const playerStatusStr = await fetchPlayerStatusStr(playerId) || lastStatus;
+            const fetchedStatus = await fetchPlayerStatusStr(playerId);
+            const playerStatusStr = fetchedStatus ?? lastStatus;
             return {
                 sourcePlayer: player,
                 playerId,
@@ -271,7 +288,11 @@ async function handlePlayersStatusChanges(bot, chatId) {
         });
     }
 
-    writeDataObjectToFile(updatedPlayers, '.', 'players-last-status.json');
+    const writeSucceeded = writeDataObjectToFile(updatedPlayers, '.', 'players-last-status.json');
+    if (!writeSucceeded) {
+        console.error(`Skip reporting to Telegram because state persistence failed.`);
+        return;
+    }
 
     if (changedPlayers.length > 0) {
         const msg = changedPlayers
