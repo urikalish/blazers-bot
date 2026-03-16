@@ -154,7 +154,7 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
 }
 
 async function fetchPlayerStatusStr(playerId) {
-    let stausStr= '';
+    let statusStr = '';
     try {
         const url = `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/${playerId}`;
         const response = await fetch(url);
@@ -164,18 +164,18 @@ async function fetchPlayerStatusStr(playerId) {
             if (injuries && injuries.length > 0) {
                 const status = injuries[0]?.details?.fantasyStatus?.description;
                 if (status) {
-                    stausStr = status;
+                    statusStr = status;
                 }
             } else {
-                stausStr = `ACT`;
+                statusStr = `ACT`;
             }
         } else {
-            console.error(`Error fetching player status`, response.error);
+            console.error(`Error fetching player status`, response.status, response.statusText);
         }
     } catch (error) {
         console.error(`Error processing player status`, error);
     }
-    return stausStr;
+    return statusStr;
 }
 
 async function handleNextGameInfo(bot, chatId) {
@@ -185,7 +185,7 @@ async function handleNextGameInfo(bot, chatId) {
     const nextGameInfoStr = nextGameInfo.msg || `N/A`;
     const msg = `Next Game: ${nextGameInfoStr}`;
     console.log(msg);
-    const isGameInProgress = nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
+    const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
     if (isGameInProgress) {
         console.log(`Game is currently in progress.`);
     }
@@ -193,9 +193,9 @@ async function handleNextGameInfo(bot, chatId) {
     if (isGameSoon) {
         console.log(`Game is soon.`);
     }
-    if (!isGameInProgress && isGameSoon) {
+    if (isGameSoon) {
         console.log(`Reporting to Telegram...`);
-        bot.telegram.sendMessage(chatId, msg).catch(console.error);
+        await bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
     } else {
         console.log(`Skip reporting to Telegram.`);
@@ -275,7 +275,7 @@ async function handlePlayersStatusChanges(bot, chatId) {
             .map(({ name, oldStatus, newStatus }) => `${name}: ${oldStatus} -> ${newStatus}`)
             .join('\n');
         console.log(`Reporting to Telegram...`);
-        bot.telegram.sendMessage(chatId, msg).catch(console.error);
+        await bot.telegram.sendMessage(chatId, msg).catch(console.error);
         console.log(`Reported to Telegram.`);
     } else {
         console.log(`Skip reporting to Telegram. No player status changes detected.`);
