@@ -2,7 +2,7 @@ name: Game Info
 
 on:
   schedule:
-    - cron: '17,47 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
