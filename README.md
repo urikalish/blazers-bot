@@ -8,7 +8,7 @@ A Node.js Telegram bot that monitors the **Portland Trail Blazers** NBA team and
 
 The bot does two things when run:
 
-1. **Game Alert** – Checks when the next Blazers game is and sends a Telegram message if the game is currently in progress or starting within 12 hours.
+1. **Game Alert** – Checks when the next Blazers game is and sends a Telegram message if the game is currently in progress, starting within 12 hours, or detected as a newly upcoming game.
 2. **Player Status Alert** – Fetches the current injury/availability status for each tracked player, compares it to the last known status, and sends a Telegram message whenever a player's status changes.
 
 ---
@@ -114,14 +114,20 @@ Any other mode throws: `Invalid mode "<mode>". Use: all | players | game`
 4. Compares the game's ID against the one persisted in `last-game-info.json`.  
    - If the ID is different (or the file doesn't exist yet), the game is considered **new** and the ID is saved to `last-game-info.json`.
 5. Sends a Telegram message in these cases:
-   - **Game in progress** – tip-off time has already passed.
+   - **Game in progress** – tip-off time has already passed (message: `Game is currently in progress.`).
    - **Game is soon** – less than 12 hours until tip-off.
    - **New game** – first time this game has been retrieved, regardless of how far away it is.
-6. Otherwise, skips silently.
+6. Message formatting for upcoming games:
+   - If the game is **new**: includes game name + date/time + time remaining.
+   - If the game is **not new**: includes only date/time + time remaining (no game name).
+7. Otherwise, skips silently.
 
-**Example Telegram message:**
+**Example Telegram messages:**
 ```
-Next Game: Portland Trail Blazers vs Golden State Warriors
+Portland Trail Blazers vs Golden State Warriors
+Thursday, 17/03/26, 03:00
+in 4 hour(s) and 30 minute(s)
+
 Thursday, 17/03/26, 03:00
 in 4 hour(s) and 30 minute(s)
 ```
