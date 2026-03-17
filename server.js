@@ -132,7 +132,7 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
         leftDays: 0,
         leftHours: 0,
         leftMinutes: 0,
-        msg: ''
+        dateAndTimeStr: ''
     };
     const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamAbbr}/schedule`;
     try {
@@ -163,7 +163,7 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
             } else if (gameInfo.leftMinutes > 0) {
                 timeLeftStr = `${gameInfo.leftMinutes} minute(s)`;
             }
-            gameInfo.msg = `${gameInfo.name}\n${gameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`;
+            gameInfo.dateAndTimeStr = `${gameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`;
         } else {
             console.warn(`No upcoming games found for team ${teamAbbr}`);
         }
@@ -213,22 +213,10 @@ async function handleNextGameInfo(bot, chatId) {
         writeDataObjectToFile({ id: nextGameInfo.id }, '.', 'last-game-info.json');
     }
 
-    let timeLeftStr = '';
-    if (nextGameInfo.leftDays > 0) {
-        timeLeftStr = `${nextGameInfo.leftDays} day(s) and ${nextGameInfo.leftHours} hour(s)`;
-    } else if (nextGameInfo.leftHours > 0) {
-        timeLeftStr = `${nextGameInfo.leftHours} hour(s) and ${nextGameInfo.leftMinutes} minute(s)`;
-    } else if (nextGameInfo.leftMinutes > 0) {
-        timeLeftStr = `${nextGameInfo.leftMinutes} minute(s)`;
-    }
-    const dateAndTimeStr = nextGameInfo.israelTimeStr
-        ? `${nextGameInfo.israelTimeStr}${timeLeftStr ? '\nin ' + timeLeftStr : ''}`
-        : null;
-    const newGameInfoStr = nextGameInfo.name && dateAndTimeStr
+    const dateAndTimeStr = nextGameInfo.dateAndTimeStr || 'N/A';
+    let msg = isNewGame
         ? `${nextGameInfo.name}\n${dateAndTimeStr}`
-        : (nextGameInfo.msg || `N/A`);
-    const existingGameInfoStr = dateAndTimeStr || `N/A`;
-    let msg  = isNewGame ? newGameInfoStr : existingGameInfoStr;
+        : dateAndTimeStr;
     console.log(msg);
 
     const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
