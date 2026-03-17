@@ -49,7 +49,7 @@ jobs:
             exit 0
           fi
 
-          git add last-game.json last-players-status.json
+          git add last-game-info.json last-players-status.json
           git commit -m "chore: update json files"
           git push
 

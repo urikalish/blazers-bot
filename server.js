@@ -204,13 +204,13 @@ async function handleNextGameInfo(bot, chatId) {
     console.log(`Handling next game info...`);
     const TEAM_ABBR = 'por';
     const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR);
-    const lastGame = readDataObjectFromFile('.', 'last-game.json');
+    const lastGame = readDataObjectFromFile('.', 'last-game-info.json');
     const lastGameId = lastGame?.id ?? null;
     const isNewGame = !!nextGameInfo.id && nextGameInfo.id !== lastGameId;
 
     if (isNewGame) {
-        console.log(`New game detected (id=${nextGameInfo.id}). Persisting to last-game.json...`);
-        writeDataObjectToFile({ id: nextGameInfo.id }, '.', 'last-game.json');
+        console.log(`New game detected (id=${nextGameInfo.id}). Persisting to last-game-info.json...`);
+        writeDataObjectToFile({ id: nextGameInfo.id }, '.', 'last-game-info.json');
     }
 
     let timeLeftStr = '';
