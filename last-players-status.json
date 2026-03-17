@@ -57,13 +57,13 @@
     "id": 4578893,
     "shirt": "27",
     "name": "Krejci",
-    "status": "OUT"
+    "status": "ACT"
   },
   {
     "id": 6606,
     "shirt": "0",
     "name": "Lillard",
-    "status": "OFS"
+    "status": "ACT"
   },
   {
     "id": 4433144,
@@ -81,7 +81,7 @@
     "id": 4914336,
     "shirt": "17",
     "name": "Sharpe",
-    "status": "OUT"
+    "status": "ACT"
   },
   {
     "id": 3907498,
@@ -99,12 +99,12 @@
     "id": 4066211,
     "shirt": "35",
     "name": "Williams",
-    "status": "OUT"
+    "status": "ACT"
   },
   {
     "id": 4706557,
     "shirt": "11",
     "name": "Youngblood",
-    "status": "OUT"
+    "status": "ACT"
   }
 ]
