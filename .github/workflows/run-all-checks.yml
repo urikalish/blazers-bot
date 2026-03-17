@@ -2,7 +2,7 @@ name: Run All Checks
 
 on:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '18,48 * * * *'
   workflow_dispatch:
 
 permissions:
