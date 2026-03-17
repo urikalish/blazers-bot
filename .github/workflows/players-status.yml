@@ -3,7 +3,7 @@ name: Players Status
 on:
   schedule:
     # Every 15 minutes, offset from :00 to avoid overlap with hourly game job
-    - cron: '7,22,37,52 * * * *'
+    - cron: '7,37 * * * *'
   workflow_dispatch:
 
 permissions:
