@@ -15,7 +15,7 @@ jobs:
   game-run:
     runs-on: ubuntu-latest
     concurrency:
-      group: game-info
+      group: run-all
       cancel-in-progress: false
 
     steps:
