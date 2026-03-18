@@ -220,7 +220,7 @@ async function handleNextGameInfo(bot, chatId) {
     console.log(msg);
 
     const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
-    const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 12;
+    const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours < 12;
     if (isGameInProgress) {
         msg = `Game is currently in progress.`;
         console.log(msg);
