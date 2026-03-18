@@ -7,10 +7,10 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node --disable-warning=DEP0040 server.js"
   },
   "dependencies": {
-    "dotenv": "^17.3.1",
-    "telegraf": "^4.16.3"
+    "dotenv": "17.3.1",
+    "telegraf": "4.16.3"
   }
 }
