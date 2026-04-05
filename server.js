@@ -16,26 +16,19 @@ function loadEnvVars() {
         );
     }
     const parsedEnv = envLoadResult.parsed ?? {};
-    const ENV = {
-        BOT_TOKEN_KEY: 'BOT_TOKEN',
-        CHAT_ID_KEY: 'CHAT_ID'
+    const requireEnvVar = (key) => {
+        const value = process.env[key] ?? parsedEnv[key];
+        if (value === undefined) {
+            throw new Error(
+                `[config] Missing ${key}. Set it in environment variables (CI) or .env (${ENV_PATH}).`,
+            );
+        }
+        return value;
     };
-    if (process.env[ENV.BOT_TOKEN_KEY] === undefined && parsedEnv[ENV.BOT_TOKEN_KEY] === undefined) {
-        throw new Error(
-            `[config] Missing ${ENV.BOT_TOKEN_KEY}. Set it in environment variables (CI) or .env (${ENV_PATH}).`,
-        );
+    return {
+        botToken: requireEnvVar('BOT_TOKEN'),
+        chatId: requireEnvVar('CHAT_ID'),
     }
-    const botToken = process.env[ENV.BOT_TOKEN_KEY] ?? parsedEnv[ENV.BOT_TOKEN_KEY];
-    if (process.env[ENV.CHAT_ID_KEY] === undefined && parsedEnv[ENV.CHAT_ID_KEY] === undefined) {
-        throw new Error(
-            `[config] Missing ${ENV.CHAT_ID_KEY}. Set it in environment variables (CI) or .env (${ENV_PATH}).`,
-        );
-    }
-    const chatId = process.env[ENV.CHAT_ID_KEY] ?? parsedEnv[ENV.CHAT_ID_KEY];
-    return  {
-        botToken,
-        chatId
-    };
 }
 
 function initBot(botToken) {
