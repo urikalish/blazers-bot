@@ -30,9 +30,6 @@ blazers-bot/
 ├── .github/
 │   └── workflows/
 │       └── run-all-checks.yml     # Active GitHub Actions workflow (runs every 15 min)
-├── inactive_workflows/            # Archived per-check workflows (not active)
-│   ├── game-info.yml
-│   └── players-status.yml
 ├── server.js                      # All application logic (startup, API calls, message decisions, persistence)
 ├── last-players-status.json       # Persisted player roster and status state (committed to repo)
 ├── last-game-info.json            # Persisted last known next-game ID (committed to repo)
@@ -131,10 +128,6 @@ The bot is designed to run **entirely on GitHub Actions** — no server required
 4. Commits and pushes any changes to `last-game-info.json` and/or `last-players-status.json` back to the repo as `github-actions[bot]`. This is the persistence mechanism — the repo itself is the database.
 
 > **Important:** Because state is persisted by committing to the repo, the workflow must have `permissions: contents: write`.
-
-### Inactive workflows: `inactive_workflows/`
-
-Two older per-check workflows (`game-info.yml`, `players-status.yml`) exist in `inactive_workflows/`. They ran separately on an hourly cron and are kept for reference. They are **not** in `.github/workflows/` and are therefore not active. To reactivate one, move it to `.github/workflows/`.
 
 ---
 
