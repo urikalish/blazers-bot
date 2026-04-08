@@ -117,7 +117,7 @@ The bot is designed to run **entirely on GitHub Actions** — no server required
 
 | Property        | Value                                                                              |
 |-----------------|------------------------------------------------------------------------------------|
-| Trigger         | Cron: `7,22,37,52 * * * *` (every 15 minutes) + manual `workflow_dispatch`        |
+| Trigger         | Cron: `13,28,43,58 * * * *` (every 15 minutes) + manual `workflow_dispatch`        |
 | Runner          | `ubuntu-latest`                                                                    |
 | Node version    | 22                                                                                 |
 | Package manager | Yarn (frozen lockfile)                                                             |
