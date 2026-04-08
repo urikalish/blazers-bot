@@ -15,9 +15,10 @@ The bot does two things when run:
 
 ## Tech Stack
 
-- **Node.js** (ES modules) — Node 18+ recommended for built-in `fetch`
+- **Node.js** (ES modules) — Node 22+ required (workflow uses Node 22; built-in `fetch` has been stable since Node 21)
 - **[Telegraf](https://telegraf.js.org/)** – Telegram Bot API framework
 - **[dotenv](https://github.com/motdotla/dotenv)** – Loads environment variables from `.env`
+- **[Yarn](https://yarnpkg.com/)** – Package manager (lockfile committed; use yarn, not npm)
 - Built-in `fetch` + `AbortController` for HTTP requests
 
 ---
@@ -26,11 +27,18 @@ The bot does two things when run:
 
 ```
 blazers-bot/
-├── server.js                  # Main application logic (startup, API calls, message decisions, persistence)
-├── last-players-status.json   # Persisted player status state
-├── last-game-info.json        # Persisted last known next-game ID (auto-created on first run)
-├── package.json               # Dependencies and npm scripts
-└── .env                       # Secret credentials (not committed)
+├── .github/
+│   └── workflows/
+│       └── run-all-checks.yml     # Active GitHub Actions workflow (runs every 15 min)
+├── inactive_workflows/            # Archived per-check workflows (not active)
+│   ├── game-info.yml
+│   └── players-status.yml
+├── server.js                      # All application logic (startup, API calls, message decisions, persistence)
+├── last-players-status.json       # Persisted player roster and status state (committed to repo)
+├── last-game-info.json            # Persisted last known next-game ID (committed to repo)
+├── package.json                   # Dependencies and scripts
+├── yarn.lock                      # Lockfile — always commit this
+└── .env                           # Secret credentials (not committed)
 ```
 
 ---
@@ -40,19 +48,21 @@ blazers-bot/
 ### 1. Install dependencies
 
 ```bash
-npm install
+yarn install
 ```
+
+> Do not use `npm install`. The project uses Yarn and commits `yarn.lock`.
 
 ### 2. Configure environment variables
 
-Create a `.env` file in the project root with the following variables:
+Create a `.env` file in the project root (see `.env.example`):
 
 ```env
 BOT_TOKEN=<your_telegram_bot_token>
 CHAT_ID=<target_chat_id>
 ```
 
-Alternatively, these can be set as environment variables directly (e.g. in a CI/CD pipeline).
+Alternatively, set these directly as environment variables (e.g. in CI/CD).
 
 | Variable    | Description                                                                   |
 |-------------|-------------------------------------------------------------------------------|
@@ -61,19 +71,29 @@ Alternatively, these can be set as environment variables directly (e.g. in a CI/
 
 If either variable is missing, startup fails with a clear error from `loadEnvVars()`.
 
+### 3. GitHub Secrets (for CI)
+
+For the GitHub Actions workflow to function, add both variables as **repository secrets** under  
+_Settings → Secrets and variables → Actions_:
+
+- `BOT_TOKEN`
+- `CHAT_ID`
+
 ---
 
 ## Usage
 
 ```bash
 # Run both game check and player status check (default)
-npm start
+yarn start
 
-# Or directly with mode selection
+# With explicit mode
 node server.js          # defaults to "all"
 node server.js game     # only game check
 node server.js players  # only player status check
 ```
+
+> The `start` script passes `--disable-warning=DEP0040` to suppress the Node.js punycode deprecation warning emitted by a transitive dependency.
 
 ### Run Modes
 
@@ -86,6 +106,35 @@ node server.js players  # only player status check
 | `players` | Only checks and reports player status changes       |
 
 Any other mode throws: `Invalid mode "<mode>". Use: all | players | game`
+
+---
+
+## GitHub Actions / CI
+
+### Active workflow: `run-all-checks.yml`
+
+The bot is designed to run **entirely on GitHub Actions** — no server required.
+
+| Property        | Value                                                                              |
+|-----------------|------------------------------------------------------------------------------------|
+| Trigger         | Cron: `7,22,37,52 * * * *` (every 15 minutes) + manual `workflow_dispatch`        |
+| Runner          | `ubuntu-latest`                                                                    |
+| Node version    | 22                                                                                 |
+| Package manager | Yarn (frozen lockfile)                                                             |
+| Concurrency     | Group `run-all`, `cancel-in-progress: false` (queues; never cancels a running job) |
+
+**What the workflow does:**
+
+1. Checks out the repo (full history with `fetch-depth: 0`).
+2. Installs dependencies via `yarn install --frozen-lockfile`.
+3. Runs `yarn start all` with `BOT_TOKEN` and `CHAT_ID` from repository secrets.
+4. Commits and pushes any changes to `last-game-info.json` and/or `last-players-status.json` back to the repo as `github-actions[bot]`. This is the persistence mechanism — the repo itself is the database.
+
+> **Important:** Because state is persisted by committing to the repo, the workflow must have `permissions: contents: write`.
+
+### Inactive workflows: `inactive_workflows/`
+
+Two older per-check workflows (`game-info.yml`, `players-status.yml`) exist in `inactive_workflows/`. They ran separately on an hourly cron and are kept for reference. They are **not** in `.github/workflows/` and are therefore not active. To reactivate one, move it to `.github/workflows/`.
 
 ---
 
@@ -148,8 +197,8 @@ in 4 hour(s) and 30 minute(s)
 
 **Example Telegram message:**
 ```
-D. Avdija: ACT -> GTD
-J. Grant: OUT -> ACT
+Avdija: ACT -> GTD
+Grant: OUT -> ACT
 ```
 
 > **Note:** If writing the updated state to `last-players-status.json` fails, the bot skips sending the Telegram message to avoid reporting stale changes on the next run.
@@ -158,27 +207,54 @@ J. Grant: OUT -> ACT
 
 ## `last-players-status.json` Format
 
-This file tracks the last known status for each player. Edit it to add or remove players.
+This file tracks the last known status for each player. **Edit it directly to add or remove players.** Changes are committed back to the repo automatically by the CI workflow after each run.
 
 ```json
 [
   {
     "id": 4683021,
     "shirt": "8",
-    "name": "D. Avdija",
+    "name": "Avdija",
     "status": "ACT"
   }
 ]
 ```
 
-| Field    | Type     | Description                                          |
-|----------|----------|------------------------------------------------------|
-| `id`     | `number` | ESPN athlete ID (required for API lookups)           |
-| `shirt`  | `string` | Jersey number (for reference only)                   |
-| `name`   | `string` | Player display name                                  |
-| `status` | `string` | Last known status (e.g. `ACT`, `OUT`, `GTD`)        |
+| Field    | Type     | Description                                                       |
+|----------|----------|-------------------------------------------------------------------|
+| `id`     | `number` | ESPN athlete ID (required for API lookups)                        |
+| `shirt`  | `string` | Jersey number (for display/reference only, not used in logic)     |
+| `name`   | `string` | Player display name (used in Telegram messages)                   |
+| `status` | `string` | Last known status — e.g. `ACT`, `OUT`, `GTD`, `OFS`             |
 
-Keep this file as valid JSON and ensure every entry includes an `id`.
+Keep this file as valid JSON and ensure every entry has an `id`. The `shirt` and `name` fields are informational only.
+
+**Finding a player's ESPN ID:** Look up the player on ESPN and copy the numeric ID from the athlete URL, e.g. `https://www.espn.com/nba/player/_/id/4683021/deni-avdija`.
+
+---
+
+## `last-game-info.json` Format
+
+Persists the ESPN event ID of the last-known upcoming game to detect new games.
+
+```json
+{ "id": "401767890" }
+```
+
+Initialize with `{ "id": "0" }` to ensure the very first game found is treated as "new" and reported.
+
+---
+
+## External APIs
+
+| API | URL pattern | Used for |
+|-----|-------------|----------|
+| ESPN Schedule | `site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/por/schedule` | Next game lookup |
+| ESPN Athlete  | `site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{id}` | Player injury/status |
+
+Both APIs are unofficial/public ESPN endpoints. They have no authentication and no documented SLA. HTTP requests time out after **10 seconds** (`FETCH_TIMEOUT_MS`).
+
+Game times are displayed in the **`Asia/Jerusalem`** timezone (Israel time) in 24-hour format.
 
 ---
 
@@ -195,39 +271,6 @@ Keep this file as valid JSON and ensure every entry includes an `id`.
 | `getTimeRemaining(futureDate)`            | Returns days/hours/minutes until a future date                              |
 | `getIsraelTimeStr(utcDate)`               | Formats a UTC date as a human-readable string in the `Asia/Jerusalem` timezone |
 | `getRunMode()`                            | Reads the CLI argument to determine which checks to run                     |
-| `writeDataObjectToFile()`                 | Persists a JSON object to a file                                            |
-| `readDataObjectFromFile()`                | Reads and parses a JSON file                                                |
+| `writeDataObjectToFile()`                 | Persists a JSON object to a file; returns `true` on success                 |
+| `readDataObjectFromFile()`                | Reads and parses a JSON file; returns `null` on any error                   |
 | `fetchWithTimeout(url)`                   | Wraps `fetch` with an `AbortController` timeout (default 10 s)             |
-
----
-
-## Time & Formatting Notes
-
-- `getIsraelTimeStr()` renders game time in the `Asia/Jerusalem` timezone via `toLocaleString('en-GB', ...)`.
-- `getTimeRemaining()` computes remaining days, hours, and minutes until game start.
-
----
-
-## Error Handling
-
-The code catches and logs errors around:
-
-- Environment loading
-- Network / API calls
-- JSON parsing
-- File read / write
-- Telegram send operations (`.catch(console.error)`)
-
-Most failures degrade gracefully by skipping sends or using fallback values.
-
----
-
-## Maintenance Tips
-
-- Keep `last-players-status.json` valid JSON and include `id` for each player.
-- To monitor only one feature in automation, use `players` or `game` mode.
-- If ESPN response schema changes, update the parsers in:
-  - `fetchNextGameInfo`
-  - `fetchPlayerStatusStr`
-- If running on Node < 18, built-in `fetch` may not exist — upgrade the runtime.
-
