@@ -116,7 +116,7 @@ async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
     }
 }
 
-async function fetchNextGameInfo(teamAbbr = 'por') {
+async function fetchNextGameInfo(teamAbbr = 'por', seasonType = '2') {
     const gameInfo = {
         id: '',
         name: '',
@@ -127,7 +127,7 @@ async function fetchNextGameInfo(teamAbbr = 'por') {
         leftMinutes: 0,
         dateAndTimeStr: ''
     };
-    const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamAbbr}/schedule`;
+    const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamAbbr}/schedule?seasontype=${seasonType}`;
     try {
         const response = await fetchWithTimeout(url);
         if (!response.ok) {
@@ -196,7 +196,8 @@ async function fetchPlayerStatusStr(playerId) {
 async function handleNextGameInfo(bot, chatId) {
     console.log(`Handling next game info...`);
     const TEAM_ABBR = 'por';
-    const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR);
+    const SEASON_TYPE = '3'; //pre = 1, regular = 2, post = 3
+    const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR, SEASON_TYPE);
     const lastGame = readDataObjectFromFile('.', 'last-game-info.json');
     const lastGameId = lastGame?.id ?? null;
     const isNewGame = !!nextGameInfo.id && nextGameInfo.id !== lastGameId;
