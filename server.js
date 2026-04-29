@@ -196,7 +196,7 @@ async function fetchPlayerStatusStr(playerId) {
 async function handleNextGameInfo(bot, chatId) {
     console.log(`Handling next game info...`);
     const TEAM_ABBR = 'por';
-    const SEASON_TYPE = '3'; //pre = 1, regular = 2, post = 3
+    const SEASON_TYPE = '1'; //pre = 1, regular = 2, post = 3
     const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR, SEASON_TYPE);
     const lastGame = readDataObjectFromFile('.', 'last-game-info.json');
     const lastGameId = lastGame?.id ?? null;
