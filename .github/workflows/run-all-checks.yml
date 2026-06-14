@@ -1,8 +1,9 @@
 name: Run All Checks
 
 on:
-  schedule:
-    - cron: '13,28,43,58 * * * *'
+  # Scheduled trigger temporarily disabled. Re-enable by uncommenting the lines below.
+  # schedule:
+  #   - cron: '13,28,43,58 * * * *'
   workflow_dispatch:
 
 permissions:
