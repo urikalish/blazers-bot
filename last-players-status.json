@@ -27,7 +27,7 @@
     "id": 2991070,
     "shirt": "9",
     "name": "Grant",
-    "status": "OUT"
+    "status": "ACT"
   },
   {
     "id": 5217746,
@@ -57,13 +57,13 @@
     "id": 4578893,
     "shirt": "27",
     "name": "Krejci",
-    "status": "GTD"
+    "status": "ACT"
   },
   {
     "id": 6606,
     "shirt": "0",
     "name": "Lillard",
-    "status": "OFS"
+    "status": "OUT"
   },
   {
     "id": 4433144,
@@ -81,7 +81,7 @@
     "id": 4914336,
     "shirt": "17",
     "name": "Sharpe",
-    "status": "GTD"
+    "status": "ACT"
   },
   {
     "id": 3907498,
