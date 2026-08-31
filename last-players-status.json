@@ -12,6 +12,12 @@
     "status": "ACT"
   },
   {
+    "id": 4592435,
+    "shirt": "",
+    "name": "Carlson",
+    "status": "ACT"
+  },
+  {
     "id": 5081727,
     "shirt": "91",
     "name": "Cissoko",
@@ -21,12 +27,6 @@
     "id": 5105565,
     "shirt": "23",
     "name": "Clingan",
-    "status": "ACT"
-  },
-  {
-    "id": 2991070,
-    "shirt": "9",
-    "name": "Grant",
     "status": "ACT"
   },
   {
@@ -63,36 +63,36 @@
     "id": 6606,
     "shirt": "0",
     "name": "Lillard",
-    "status": "GTD"
-  },
-  {
-    "id": 4433144,
-    "shirt": "2",
-    "name": "Love",
     "status": "ACT"
   },
   {
-    "id": 4594326,
-    "shirt": "24",
-    "name": "Murray",
+    "id": 4279888,
+    "shirt": "1",
+    "name": "Morant",
+    "status": "ACT"
+  },
+  {
+    "id": 4066399,
+    "shirt": "11",
+    "name": "Potter",
     "status": "ACT"
   },
   {
     "id": 4914336,
     "shirt": "17",
     "name": "Sharpe",
-    "status": "OUT"
-  },
-  {
-    "id": 3907498,
-    "shirt": "4",
-    "name": "Thybulle",
     "status": "ACT"
   },
   {
-    "id": 4683935,
-    "shirt": "1",
-    "name": "Wesley",
+    "id": 4610139,
+    "shirt": "20",
+    "name": "Sochan",
+    "status": "ACT"
+  },
+  {
+    "id": 4593043,
+    "shirt": "",
+    "name": "Tonje",
     "status": "ACT"
   },
   {
