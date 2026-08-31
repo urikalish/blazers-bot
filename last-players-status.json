@@ -1,110 +1,146 @@
 [
   {
     "id": 4683021,
-    "shirt": "8",
     "name": "Avdija",
+    "fullName": "Deni Avdija",
+    "position": "F",
+    "shirt": "8",
     "status": "ACT"
   },
   {
     "id": 4431736,
-    "shirt": "33",
     "name": "Camara",
+    "fullName": "Toumani Camara",
+    "position": "F",
+    "shirt": "33",
     "status": "ACT"
   },
   {
     "id": 4592435,
-    "shirt": "",
     "name": "Carlson",
+    "fullName": "Branden Carlson",
+    "position": "C",
+    "shirt": "",
     "status": "ACT"
   },
   {
     "id": 5081727,
-    "shirt": "91",
     "name": "Cissoko",
+    "fullName": "Sidy Cissoko",
+    "position": "G",
+    "shirt": "91",
     "status": "ACT"
   },
   {
     "id": 5105565,
-    "shirt": "23",
     "name": "Clingan",
+    "fullName": "Donovan Clingan",
+    "position": "C",
+    "shirt": "23",
     "status": "ACT"
   },
   {
     "id": 5217746,
-    "shirt": "16",
     "name": "Hansen",
+    "fullName": "Yang Hansen",
+    "position": "C",
+    "shirt": "16",
     "status": "ACT"
   },
   {
     "id": 4683678,
-    "shirt": "00",
     "name": "Henderson",
+    "fullName": "Scoot Henderson",
+    "position": "G",
+    "shirt": "00",
     "status": "ACT"
   },
   {
     "id": 3995,
-    "shirt": "5",
     "name": "Holiday",
+    "fullName": "Jrue Holiday",
+    "position": "G",
+    "shirt": "5",
     "status": "ACT"
   },
   {
     "id": 4703889,
-    "shirt": "29",
     "name": "Kent",
+    "fullName": "Jayson Kent",
+    "position": "G",
+    "shirt": "29",
     "status": "ACT"
   },
   {
     "id": 4578893,
-    "shirt": "27",
     "name": "Krejci",
+    "fullName": "Vit Krejci",
+    "position": "G",
+    "shirt": "27",
     "status": "ACT"
   },
   {
     "id": 6606,
-    "shirt": "0",
     "name": "Lillard",
+    "fullName": "Damian Lillard",
+    "position": "G",
+    "shirt": "0",
     "status": "ACT"
   },
   {
     "id": 4279888,
-    "shirt": "1",
     "name": "Morant",
+    "fullName": "Ja Morant",
+    "position": "G",
+    "shirt": "1",
     "status": "ACT"
   },
   {
     "id": 4066399,
-    "shirt": "11",
     "name": "Potter",
+    "fullName": "Micah Potter",
+    "position": "C",
+    "shirt": "11",
     "status": "ACT"
   },
   {
     "id": 4914336,
-    "shirt": "17",
     "name": "Sharpe",
+    "fullName": "Shaedon Sharpe",
+    "position": "G",
+    "shirt": "17",
     "status": "ACT"
   },
   {
     "id": 4610139,
-    "shirt": "20",
     "name": "Sochan",
+    "fullName": "Jeremy Sochan",
+    "position": "F",
+    "shirt": "20",
     "status": "ACT"
   },
   {
     "id": 4593043,
-    "shirt": "",
     "name": "Tonje",
+    "fullName": "John Tonje",
+    "position": "F",
+    "shirt": "",
     "status": "ACT"
   },
   {
     "id": 4066211,
-    "shirt": "35",
     "name": "Williams",
+    "fullName": "Robert Williams III",
+    "position": "C",
+    "shirt": "35",
     "status": "ACT"
   },
   {
     "id": 4706557,
-    "shirt": "11",
     "name": "Youngblood",
+    "fullName": "Chris Youngblood",
+    "position": "G",
+    "shirt": "11",
     "status": "ACT"
   }
 ]
