@@ -243,29 +243,30 @@ async function handlePlayersStatusChanges(bot, chatId) {
     const resolvedPlayers = await Promise.all(
         lastPlayersStatus.map(async (player) => {
             const playerId = player?.id;
+            const lastStatus = player?.status || `N/A`;
+            const base = {
+                sourcePlayer: player,
+                playerId: null,
+                name: player?.name || `N/A`,
+                fullName: player?.fullName || `N/A`,
+                position: player?.position || `N/A`,
+                shirt: player?.shirt || `N/A`,
+                oldStatus: lastStatus,
+                status: lastStatus,
+                changed: false,
+            };
+
             if (playerId === undefined || playerId === null) {
                 console.warn(`Skipping player entry without id`, player);
-                return {
-                    sourcePlayer: player,
-                    playerId: null,
-                    shirt: player?.shirt || `N/A`,
-                    name: player?.name || `Unknown Player`,
-                    oldStatus: player?.status || `N/A`,
-                    status: player?.status || `N/A`,
-                    changed: false,
-                };
+                return base;
             }
 
-            const playerName = player?.name || `Player ${playerId}`;
-            const lastStatus = player?.status || `N/A`;
             const fetchedStatus = await fetchPlayerStatusStr(playerId);
             const playerStatusStr = fetchedStatus ?? lastStatus;
             return {
-                sourcePlayer: player,
+                ...base,
                 playerId,
-                shirt: player?.shirt || `N/A`,
-                name: playerName,
-                oldStatus: lastStatus,
+                name: player?.name || `Player ${playerId}`,
                 status: playerStatusStr,
                 changed: lastStatus !== playerStatusStr,
             };
@@ -284,8 +285,10 @@ async function handlePlayersStatusChanges(bot, chatId) {
             console.log(`Player status changed for ${player.name} from ${player.oldStatus} to ${player.status}`);
             changedPlayers.push({
                 playerId: player.playerId,
-                shirt: player.shirt,
                 name: player.name,
+                fullName: player.fullName,
+                position: player.position,
+                shirt: player.shirt,
                 oldStatus: player.oldStatus,
                 newStatus: player.status,
             });
