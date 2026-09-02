@@ -66,7 +66,7 @@ Alternatively, set these directly as environment variables (e.g. in CI/CD).
 | `BOT_TOKEN` | Telegram bot token from [@BotFather](https://t.me/BotFather)                 |
 | `CHAT_ID`   | Target Telegram chat/group ID to send messages to                            |
 
-If either variable is missing, startup fails with a clear error from `loadEnvVars()`.
+If either variable is missing, empty, or blank, startup fails with a clear error from `loadEnvVars()`.
 
 ### 3. GitHub Secrets (for CI)
 
@@ -129,19 +129,23 @@ The bot is designed to run **entirely on GitHub Actions** — no server required
 
 > **Important:** Because state is persisted by committing to the repo, the workflow must have `permissions: contents: write`.
 
+> **Important:** The commit step runs with `if: always()`. State that was already written to disk must be committed even when the run reports a failure — otherwise an alert that was successfully sent and persisted locally would be re-sent on every subsequent run.
+
 ---
 
 ## Execution Flow
 
 `go()` is the entrypoint:
 
-1. Load environment variables (`loadEnvVars`)
-2. Initialize Telegram bot (`initBot`)
-3. Resolve run mode (`getRunMode`)
+1. Resolve run mode (`getRunMode`)
+2. Load environment variables (`loadEnvVars`)
+3. Initialize Telegram bot (`initBot`)
 4. Execute selected handlers:
    - `handleNextGameInfo(bot, chatId)`
    - `handlePlayersStatusChanges(bot, chatId)`
 5. Log completion
+
+An invalid run mode fails before any credentials are read or network calls are made. Each handler returns a success flag and `go()` sets the process exit code once, at the end. The run exits non-zero only when something was actually lost — a failed schedule request, a failed Telegram send, or a failed state write — **not** for degraded-but-safe outcomes such as an individual player status that could not be fetched (those are logged and the last known status is kept).
 
 ---
 
@@ -151,18 +155,20 @@ The bot is designed to run **entirely on GitHub Actions** — no server required
 
 1. Fetches the Blazers schedule from the ESPN API:  
    `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/por/schedule`
-2. Selects the first upcoming event where the game is not completed.
-3. Builds a `gameInfo` object with the game ID, name, UTC date, formatted Israel-local time string, time remaining (days/hours/minutes), and a formatted message.
+2. Selects the earliest upcoming event (sorted by date) where the game is not completed.
+3. Builds a `gameInfo` object with the game ID, name, UTC date, formatted Israel-local time string, time remaining (days/hours/minutes), an in-progress flag, and a formatted message.
 4. Compares the game's ID against the one persisted in `last-game-info.json`.  
-   - If the ID is different (or the file doesn't exist yet), the game is considered **new** and the ID is saved to `last-game-info.json`.
+   - If the ID is different (or the file doesn't exist yet), the game is considered **new**.
 5. Sends a Telegram message in these cases:
-   - **Game in progress** – tip-off time has already passed (message: `Game is currently in progress.`).
-   - **Game is soon** – less than 12 hours until tip-off.
+   - **Game in progress** – ESPN reports the event state as `in` (message: `Game is currently in progress.`). If ESPN omits the state, the bot falls back to "tip-off passed less than 4 hours ago" so a finished game is never reported as in progress indefinitely. If the game is also **new**, the message includes the game name and date/time above that line, so a newly detected game is never announced without its name.
+   - **Game is soon** – less than 12 hours until tip-off **and** tip-off has not passed yet.
    - **New game** – first time this game has been retrieved, regardless of how far away it is.
-6. Message formatting for upcoming games:
+6. For a new game, the ID is persisted to `last-game-info.json` **only after** the Telegram message was sent successfully. If the send fails, nothing is persisted so the game is reported again on the next run. The stored ID is compared as a string, so a hand-edited numeric ID still matches.
+7. If the schedule request fails (non-OK response, timeout, or network error), the run logs the error, skips reporting, and sets a non-zero exit code — an ESPN outage is never mistaken for "no upcoming games".
+8. Message formatting for upcoming games:
    - If the game is **new**: includes game name + date/time + time remaining.
    - If the game is **not new**: includes only date/time + time remaining (no game name).
-7. Otherwise, skips silently.
+9. Otherwise, skips silently.
 
 **Example Telegram messages:**
 ```
@@ -181,12 +187,13 @@ in 4 hour(s) and 30 minute(s)
 1. Reads the tracked player list from `last-players-status.json`.
 2. For each player, fetches their current status in parallel (`Promise.all`) from the ESPN athlete API:  
    `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{playerId}`
-   - If injury data exists, reads `injuries[0].details.fantasyStatus.description`.
+   - If injury data exists, reads `injuries[0].details.fantasyStatus.description`, falling back to `injuries[0].status` mapped through a small known-value table (e.g. `Day-To-Day` → `DTD`, `Game-Time Decision` → `GTD`). Unrecognized values are **not** guessed — they are treated as unparsable so an invented abbreviation can never flip-flop against the `fantasyStatus` vocabulary.
    - If no injuries are listed, defaults to `ACT`.
-   - Returns `null` on request/processing errors (falls back to the previous status).
+   - Returns `{ status: null, hasError: true }` on request/processing errors or an unparsable payload; the player's previous status is kept.
 3. Compares the fetched status to the last known status.
-4. Writes the updated statuses back to `last-players-status.json`.
+4. Logs how many players could not be refreshed (failed fetches, and entries with no `id`). These are logged as errors but do **not** fail the run, since nothing is lost — the last known status is kept.
 5. If any player's status changed, sends a Telegram message listing all changes.
+6. Writes the updated statuses back to `last-players-status.json`.
 
 **Example Telegram message:**
 ```
@@ -194,7 +201,7 @@ Avdija: ACT -> GTD
 Grant: OUT -> ACT
 ```
 
-> **Note:** If writing the updated state to `last-players-status.json` fails, the bot skips sending the Telegram message to avoid reporting stale changes on the next run.
+> **Note:** State is persisted **only after** the Telegram message was sent successfully. If the send fails, the file is left untouched so the same changes are reported again on the next run. If the send succeeds but the write fails, the error is logged and the exit code is set to non-zero (the same changes will be re-reported next run). When nothing changed, no message is sent and no write occurs.
 
 ---
 
@@ -255,15 +262,18 @@ Game times are displayed in the **`Asia/Jerusalem`** timezone (Israel time) in 2
 
 | Function                                  | Description                                                                 |
 |-------------------------------------------|-----------------------------------------------------------------------------|
-| `loadEnvVars()`                           | Loads and validates `BOT_TOKEN` and `CHAT_ID` from env or `.env`           |
+| `loadEnvVars()`                           | Loads and validates `BOT_TOKEN` and `CHAT_ID` from env or `.env` (rejects empty values) |
 | `initBot(botToken)`                       | Creates and configures the Telegraf bot instance                            |
-| `fetchNextGameInfo(teamAbbr)`             | Fetches next game data from ESPN and builds a summary object                |
-| `fetchPlayerStatusStr(playerId)`          | Fetches a single player's current injury/availability status from ESPN      |
-| `handleNextGameInfo(bot, chatId)`         | Orchestrates the game check and conditionally sends a Telegram alert        |
-| `handlePlayersStatusChanges(bot, chatId)` | Orchestrates the player status check and sends change alerts                |
+| `sendTelegramMessage(bot, chatId, msg)`   | Sends a Telegram message; returns `true` on success, `false` on failure     |
+| `fetchNextGameInfo(teamAbbr, seasonType)` | Fetches next game data from ESPN and builds a summary object (sets `hasError` if the request fails) |
+| `getIsGameInProgress(event, utcDateTime)` | Determines whether a game is live, from the ESPN event state (with a time-window fallback) |
+| `fetchPlayerStatus(playerId)`             | Fetches a single player's status from ESPN; returns `{ status, hasError }`  |
+| `resolveInjuryStatusStr(injury, playerId)`| Extracts a status abbreviation from an ESPN injury entry; returns `null` if unparsable |
+| `handleNextGameInfo(bot, chatId)`         | Orchestrates the game check and conditionally sends a Telegram alert; returns `false` if anything was lost |
+| `handlePlayersStatusChanges(bot, chatId)` | Orchestrates the player status check and sends change alerts; returns `false` if anything was lost |
 | `getTimeRemaining(futureDate)`            | Returns days/hours/minutes until a future date                              |
 | `getIsraelTimeStr(utcDate)`               | Formats a UTC date as a human-readable string in the `Asia/Jerusalem` timezone |
 | `getRunMode()`                            | Reads the CLI argument to determine which checks to run                     |
-| `writeDataObjectToFile()`                 | Persists a JSON object to a file; returns `true` on success                 |
-| `readDataObjectFromFile()`                | Reads and parses a JSON file; returns `null` on any error                   |
+| `writeDataObjectToFile(data, fileName)`   | Persists a JSON object to a file; returns `true` on success                 |
+| `readDataObjectFromFile(fileName)`        | Reads and parses a JSON file; returns `null` on any error                   |
 | `fetchWithTimeout(url)`                   | Wraps `fetch` with an `AbortController` timeout (default 10 s)             |

@@ -1,11 +1,14 @@
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { writeFileSync, mkdirSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync } from 'fs';
 import { config as loadEnv } from 'dotenv';
 import { Telegraf } from 'telegraf';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const LAST_GAME_INFO_FILE = 'last-game-info.json';
+const LAST_PLAYERS_STATUS_FILE = 'last-players-status.json';
 
 function loadEnvVars() {
     const ENV_PATH = resolve(__dirname, '.env');
@@ -18,12 +21,12 @@ function loadEnvVars() {
     const parsedEnv = envLoadResult.parsed ?? {};
     const requireEnvVar = (key) => {
         const value = process.env[key] ?? parsedEnv[key];
-        if (value === undefined) {
+        if (typeof value !== 'string' || value.trim() === '') {
             throw new Error(
-                `[config] Missing ${key}. Set it in environment variables (CI) or .env (${ENV_PATH}).`,
+                `[config] Missing or empty ${key}. Set it in environment variables (CI) or .env (${ENV_PATH}).`,
             );
         }
-        return value;
+        return value.trim();
     };
     return {
         botToken: requireEnvVar('BOT_TOKEN'),
@@ -34,23 +37,33 @@ function loadEnvVars() {
 function initBot(botToken) {
     console.log(`Bot initializing...`);
     const bot = new Telegraf(botToken);
-    process.once('SIGINT', () => bot.stop('SIGINT'));
-    process.once('SIGTERM', () => bot.stop('SIGTERM'));
     console.log(`Bot initialized.`);
     return bot;
 }
 
-function readDataObjectFromFile(dirPath, fileName) {
-    let dataObject = null;
-    const fullFilePath = `${dirPath}/${fileName}`;
+async function sendTelegramMessage(bot, chatId, msg) {
     try {
-        const outDir = resolve(__dirname, dirPath);
-        const raw = readFileSync(resolve(outDir, fileName), 'utf8');
-        dataObject = JSON.parse(raw);
+        await bot.telegram.sendMessage(chatId, msg);
+        console.log(`Reported to Telegram.`);
+        return true;
     } catch (error) {
-        console.warn(`Error while trying to read from ${fullFilePath}`, error);
+        console.error(`Error while trying to send a Telegram message`, error);
+        return false;
     }
-    return dataObject;
+}
+
+function readDataObjectFromFile(fileName) {
+    const fullFilePath = resolve(__dirname, fileName);
+    try {
+        return JSON.parse(readFileSync(fullFilePath, 'utf8'));
+    } catch (error) {
+        if (error?.code === 'ENOENT') {
+            console.log(`File ${fullFilePath} does not exist yet.`);
+        } else {
+            console.warn(`Error while trying to read from ${fullFilePath}`, error);
+        }
+        return null;
+    }
 }
 
 function getRunMode() {
@@ -62,13 +75,11 @@ function getRunMode() {
     return mode;
 }
 
-function writeDataObjectToFile(dataObject, dirPath, fileName) {
-    const fullFilePath = `${dirPath}/${fileName}`;
+function writeDataObjectToFile(dataObject, fileName) {
+    const fullFilePath = resolve(__dirname, fileName);
     console.log(`Writing to ${fullFilePath}...`);
     try {
-        const outDir = resolve(__dirname, dirPath);
-        mkdirSync(outDir, { recursive: true });
-        writeFileSync(resolve(outDir, fileName), JSON.stringify(dataObject, null, 2));
+        writeFileSync(fullFilePath, JSON.stringify(dataObject, null, 2));
         console.log(`File ${fullFilePath} updated.`);
         return true;
     } catch (error) {
@@ -77,10 +88,9 @@ function writeDataObjectToFile(dataObject, dirPath, fileName) {
     }
 }
 
-
 function getTimeRemaining(futureDate) {
     const now = new Date();
-    const differenceMs = futureDate - now;
+    const differenceMs = futureDate.getTime() - now.getTime();
     if (differenceMs <= 0) {
         return { days: 0, hours: 0, minutes: 0 };
     }
@@ -105,6 +115,7 @@ function getIsraelTimeStr(utcDate) {
 }
 
 const FETCH_TIMEOUT_MS = 10000;
+const GAME_MAX_DURATION_MS = 4 * 60 * 60 * 1000;
 
 async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
     const controller = new AbortController();
@@ -116,12 +127,29 @@ async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
     }
 }
 
+function getIsGameInProgress(event, utcDateTime) {
+    const state = event?.competitions?.[0]?.status?.type?.state;
+    if (state === 'in') {
+        return true;
+    }
+    if (state === 'pre' || state === 'post') {
+        return false;
+    }
+    if (!utcDateTime) {
+        return false;
+    }
+    const elapsedMs = Date.now() - utcDateTime.getTime();
+    return elapsedMs >= 0 && elapsedMs < GAME_MAX_DURATION_MS;
+}
+
 async function fetchNextGameInfo(teamAbbr = 'por', seasonType = '2') {
     const gameInfo = {
         id: '',
         name: '',
         israelTimeStr: '',
         utcDateTime: null,
+        isInProgress: false,
+        hasError: false,
         leftDays: 0,
         leftHours: 0,
         leftMinutes: 0,
@@ -132,18 +160,23 @@ async function fetchNextGameInfo(teamAbbr = 'por', seasonType = '2') {
         const response = await fetchWithTimeout(url);
         if (!response.ok) {
             console.error(`Error fetching next game info`, response.status, response.statusText);
+            gameInfo.hasError = true;
             return gameInfo;
         }
         const data = await response.json();
-        const upcomingGames = data.events?.filter(event =>
-            event?.competitions?.[0]?.status?.type?.completed === false
-        ) ?? [];
+        const upcomingGames = (data.events ?? [])
+            .filter(event =>
+                event?.competitions?.[0]?.status?.type?.completed === false &&
+                !Number.isNaN(new Date(event?.date).getTime())
+            )
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
         const nextGame = upcomingGames[0];
         if (nextGame) {
             gameInfo.id = nextGame.id;
             gameInfo.name = nextGame.name;
             gameInfo.utcDateTime = new Date(nextGame.date);
             gameInfo.israelTimeStr = getIsraelTimeStr(gameInfo.utcDateTime);
+            gameInfo.isInProgress = getIsGameInProgress(nextGame, gameInfo.utcDateTime);
             const timeRemaining = getTimeRemaining(gameInfo.utcDateTime);
             gameInfo.leftDays = timeRemaining.days;
             gameInfo.leftHours = timeRemaining.hours;
@@ -162,35 +195,58 @@ async function fetchNextGameInfo(teamAbbr = 'por', seasonType = '2') {
         }
     } catch (error) {
         console.error(`Error processing next game info`, error);
+        gameInfo.hasError = true;
     }
     return gameInfo;
 }
 
-async function fetchPlayerStatusStr(playerId) {
-    let statusStr = null;
+// Fallback vocabulary used only when ESPN omits details.fantasyStatus; unknown values are treated as unparsable rather than guessed.
+const INJURY_STATUS_ABBR = {
+    'active': 'ACT',
+    'day-to-day': 'DTD',
+    'game-time decision': 'GTD',
+    'out': 'OUT',
+    'out for season': 'OFS',
+    'suspension': 'SSPD',
+};
+
+function resolveInjuryStatusStr(injury, playerId) {
+    const fantasyStatus = injury?.details?.fantasyStatus?.description;
+    if (typeof fantasyStatus === 'string' && fantasyStatus.trim() !== '') {
+        return fantasyStatus.trim();
+    }
+    const rawStatus = injury?.status ?? injury?.type?.description;
+    if (typeof rawStatus === 'string' && rawStatus.trim() !== '') {
+        const abbr = INJURY_STATUS_ABBR[rawStatus.trim().toLowerCase()];
+        if (abbr) {
+            return abbr;
+        }
+        console.warn(`Unrecognized player status "${rawStatus}" for playerId=${playerId}`);
+        return null;
+    }
+    console.warn(`Player status payload missing/invalid for playerId=${playerId}`);
+    return null;
+}
+
+async function fetchPlayerStatus(playerId) {
     try {
         const url = `https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/${playerId}`;
         const response = await fetchWithTimeout(url);
-        if (response.ok) {
-            const json = await response.json();
-            const injuries = json.athlete?.injuries;
-            if (injuries && injuries.length > 0) {
-                const status = injuries[0]?.details?.fantasyStatus?.description;
-                if (typeof status === 'string' && status.trim() !== '') {
-                    statusStr = status;
-                } else {
-                    console.warn(`Player status payload missing/invalid for playerId=${playerId}`);
-                }
-            } else {
-                statusStr = `ACT`;
-            }
-        } else {
+        if (!response.ok) {
             console.error(`Error fetching player status`, response.status, response.statusText);
+            return { status: null, hasError: true };
         }
+        const json = await response.json();
+        const injuries = json.athlete?.injuries;
+        if (!injuries || injuries.length === 0) {
+            return { status: `ACT`, hasError: false };
+        }
+        const status = resolveInjuryStatusStr(injuries[0], playerId);
+        return { status, hasError: status === null };
     } catch (error) {
         console.error(`Error processing player status`, error);
+        return { status: null, hasError: true };
     }
-    return statusStr;
 }
 
 async function handleNextGameInfo(bot, chatId) {
@@ -198,140 +254,168 @@ async function handleNextGameInfo(bot, chatId) {
     const TEAM_ABBR = 'por';
     const SEASON_TYPE = '1'; //pre = 1, regular = 2, post = 3
     const nextGameInfo = await fetchNextGameInfo(TEAM_ABBR, SEASON_TYPE);
-    const lastGame = readDataObjectFromFile('.', 'last-game-info.json');
-    const lastGameId = lastGame?.id ?? null;
-    const isNewGame = !!nextGameInfo.id && nextGameInfo.id !== lastGameId;
-
-    if (isNewGame) {
-        console.log(`New game detected (id=${nextGameInfo.id}). Persisting to last-game-info.json...`);
-        writeDataObjectToFile({ id: nextGameInfo.id }, '.', 'last-game-info.json');
+    if (nextGameInfo.hasError) {
+        console.error(`Skip handling next game info because the schedule could not be fetched.`);
+        return false;
     }
+    const lastGame = readDataObjectFromFile(LAST_GAME_INFO_FILE);
+    const lastGameId = lastGame?.id === undefined || lastGame?.id === null ? null : String(lastGame.id);
+    const nextGameId = nextGameInfo.id ? String(nextGameInfo.id) : '';
+    const isNewGame = !!nextGameId && nextGameId !== lastGameId;
 
     const dateAndTimeStr = nextGameInfo.dateAndTimeStr || 'N/A';
-    let msg = isNewGame
-        ? `${nextGameInfo.name}\n${dateAndTimeStr}`
-        : dateAndTimeStr;
+    const isGameInProgress = nextGameInfo.isInProgress;
+    const hasNotStarted = !!nextGameInfo.utcDateTime && nextGameInfo.utcDateTime.getTime() > Date.now();
+    const isGameSoon = !isGameInProgress && hasNotStarted && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours < 12;
+    const msg = isGameInProgress
+        ? (isNewGame
+            ? `${nextGameInfo.name}\n${dateAndTimeStr}\nGame is currently in progress.`
+            : `Game is currently in progress.`)
+        : (isNewGame ? `${nextGameInfo.name}\n${dateAndTimeStr}` : dateAndTimeStr);
+
+    if (!isGameInProgress && !isGameSoon && !isNewGame) {
+        console.log(`Skip reporting to Telegram.`);
+        return true;
+    }
     console.log(msg);
 
-    const isGameInProgress = !!nextGameInfo.utcDateTime && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours <= 0 && nextGameInfo.leftMinutes <= 0;
-    const isGameSoon = !!nextGameInfo.utcDateTime && !isGameInProgress && nextGameInfo.leftDays <= 0 && nextGameInfo.leftHours < 12;
-    if (isGameInProgress) {
-        msg = `Game is currently in progress.`;
-        console.log(msg);
-        await bot.telegram.sendMessage(chatId, msg).catch(console.error);
-    } else if (isGameSoon || isNewGame) {
-        if (isNewGame) {
-            console.log(`Reporting new game to Telegram...`);
-        } else {
-            console.log(`Game is soon. Reporting to Telegram...`);
-        }
-        await bot.telegram.sendMessage(chatId, msg).catch(console.error);
-        console.log(`Reported to Telegram.`);
+    if (isNewGame) {
+        console.log(`New game detected (id=${nextGameId}). Reporting to Telegram...`);
     } else {
-        console.log(`Skip reporting to Telegram.`);
+        console.log(`Game is ${isGameInProgress ? 'in progress' : 'soon'}. Reporting to Telegram...`);
     }
+    const sent = await sendTelegramMessage(bot, chatId, msg);
+
+    if (!isNewGame) {
+        return sent;
+    }
+    if (!sent) {
+        console.error(`Skip persisting new game id so it is reported again on the next run.`);
+        return false;
+    }
+    console.log(`Persisting new game id to ${LAST_GAME_INFO_FILE}...`);
+    if (!writeDataObjectToFile({ id: nextGameId }, LAST_GAME_INFO_FILE)) {
+        console.error(`Failed to persist the new game id. It will be reported again on the next run.`);
+        return false;
+    }
+    return true;
 }
 
 async function handlePlayersStatusChanges(bot, chatId) {
     console.log(`Handling player status changes...`);
-    const lastPlayersStatus = readDataObjectFromFile('.', 'last-players-status.json');
+    const lastPlayersStatus = readDataObjectFromFile(LAST_PLAYERS_STATUS_FILE);
     if (!Array.isArray(lastPlayersStatus) || lastPlayersStatus.length === 0) {
-        console.log(`No players found in last-players-status.json. Skip handling player statuses.`);
-        return;
+        console.log(`No players found in ${LAST_PLAYERS_STATUS_FILE}. Skip handling player statuses.`);
+        return true;
     }
 
     const resolvedPlayers = await Promise.all(
         lastPlayersStatus.map(async (player) => {
-            const playerId = player?.id;
+            const playerId = player?.id ?? null;
             const lastStatus = player?.status || `N/A`;
             const base = {
                 sourcePlayer: player,
-                playerId: null,
-                name: player?.name || `N/A`,
-                fullName: player?.fullName || `N/A`,
-                position: player?.position || `N/A`,
-                shirt: player?.shirt || `N/A`,
+                playerId,
+                name: player?.name || (playerId === null ? `Unknown player` : `Player ${playerId}`),
                 oldStatus: lastStatus,
                 status: lastStatus,
                 changed: false,
+                hasError: false,
             };
 
-            if (playerId === undefined || playerId === null) {
+            if (playerId === null) {
                 console.warn(`Skipping player entry without id`, player);
                 return base;
             }
 
-            const fetchedStatus = await fetchPlayerStatusStr(playerId);
+            const { status: fetchedStatus, hasError } = await fetchPlayerStatus(playerId);
             const playerStatusStr = fetchedStatus ?? lastStatus;
             return {
                 ...base,
-                playerId,
-                name: player?.name || `Player ${playerId}`,
                 status: playerStatusStr,
                 changed: lastStatus !== playerStatusStr,
+                hasError,
             };
         })
     );
 
-    const updatedPlayers = [];
     const changedPlayers = [];
+    let failedFetchCount = 0;
+    let invalidEntryCount = 0;
 
     for (const player of resolvedPlayers) {
-        if (player.playerId !== null) {
-            console.log(`${player.name} (${player.playerId}) status: ${player.status}`);
+        console.log(`${player.name} (${player.playerId ?? 'no id'}) status: ${player.status}`);
+
+        if (player.playerId === null) {
+            invalidEntryCount++;
+        } else if (player.hasError) {
+            failedFetchCount++;
         }
 
         if (player.changed) {
             console.log(`Player status changed for ${player.name} from ${player.oldStatus} to ${player.status}`);
             changedPlayers.push({
-                playerId: player.playerId,
                 name: player.name,
-                fullName: player.fullName,
-                position: player.position,
-                shirt: player.shirt,
                 oldStatus: player.oldStatus,
                 newStatus: player.status,
             });
         } else {
             console.log(`Player status did not change for ${player.name}. Last known status: ${player.oldStatus}`);
         }
-
-        updatedPlayers.push({
-            ...player.sourcePlayer,
-            status: player.status,
-        });
     }
 
-    const writeSucceeded = writeDataObjectToFile(updatedPlayers, '.', 'last-players-status.json');
-    if (!writeSucceeded) {
-        console.error(`Skip reporting to Telegram because state persistence failed.`);
-        return;
+    if (invalidEntryCount > 0) {
+        console.error(`${invalidEntryCount} entry/entries in ${LAST_PLAYERS_STATUS_FILE} have no id and were never refreshed. Fix the file.`);
+    }
+    if (failedFetchCount > 0) {
+        console.error(`Could not fetch a valid status for ${failedFetchCount} player(s). Their last known status was kept.`);
     }
 
-    if (changedPlayers.length > 0) {
-        const msg = changedPlayers
-            .map(({ name, oldStatus, newStatus }) => `${name}: ${oldStatus} -> ${newStatus}`)
-            .join('\n');
-        console.log(`Reporting to Telegram...`);
-        await bot.telegram.sendMessage(chatId, msg).catch(console.error);
-        console.log(`Reported to Telegram.`);
-    } else {
+    if (changedPlayers.length === 0) {
         console.log(`Skip reporting to Telegram. No player status changes detected.`);
+        return true;
     }
+
+    const msg = changedPlayers
+        .map(({ name, oldStatus, newStatus }) => `${name}: ${oldStatus} -> ${newStatus}`)
+        .join('\n');
+    console.log(`Reporting to Telegram...`);
+    const sent = await sendTelegramMessage(bot, chatId, msg);
+    if (!sent) {
+        console.error(`Skip persisting player statuses so the changes are reported again on the next run.`);
+        return false;
+    }
+
+    const updatedPlayers = resolvedPlayers.map((player) => ({
+        ...player.sourcePlayer,
+        status: player.status,
+    }));
+    if (!writeDataObjectToFile(updatedPlayers, LAST_PLAYERS_STATUS_FILE)) {
+        console.error(`Failed to persist player statuses. The same changes will be reported again on the next run.`);
+        return false;
+    }
+    return true;
 }
 
 async function go() {
     console.log(`GO!`);
+    const runMode = getRunMode();
     const {botToken, chatId} = loadEnvVars();
     const bot = initBot(botToken);
-    const runMode = getRunMode();
+    let succeeded = true;
     if (runMode === 'all' || runMode === 'game') {
-        await handleNextGameInfo(bot, chatId);
+        succeeded = await handleNextGameInfo(bot, chatId) && succeeded;
     }
     if (runMode === 'all' || runMode === 'players') {
-        await handlePlayersStatusChanges(bot, chatId);
+        succeeded = await handlePlayersStatusChanges(bot, chatId) && succeeded;
     }
     console.log(`DONE.`);
+    if (!succeeded) {
+        process.exitCode = 1;
+    }
 }
 
-go().catch(console.error);
+go().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});
