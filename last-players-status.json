@@ -20,7 +20,7 @@
     "name": "Carlson",
     "fullName": "Branden Carlson",
     "position": "C",
-    "shirt": "",
+    "shirt": "10",
     "status": "ACT"
   },
   {
@@ -124,7 +124,7 @@
     "name": "Tonje",
     "fullName": "John Tonje",
     "position": "F",
-    "shirt": "",
+    "shirt": "2",
     "status": "ACT"
   },
   {
