@@ -77,7 +77,7 @@
     "fullName": "Damian Lillard",
     "position": "G",
     "shirt": "0",
-    "status": "ACT"
+    "status": "GTD"
   },
   {
     "id": 4279888,
@@ -125,7 +125,7 @@
     "fullName": "Robert Williams III",
     "position": "C",
     "shirt": "35",
-    "status": "ACT"
+    "status": "GTD"
   },
   {
     "id": 4706557,
@@ -133,6 +133,6 @@
     "fullName": "Chris Youngblood",
     "position": "G",
     "shirt": "3",
-    "status": "ACT"
+    "status": "GTD"
   }
 ]
