@@ -1,74 +1,10 @@
 [
   {
-    "id": 4683021,
-    "name": "Avdija",
-    "fullName": "Deni Avdija",
-    "position": "F",
-    "shirt": "8",
-    "status": "ACT"
-  },
-  {
-    "id": 4431736,
-    "name": "Camara",
-    "fullName": "Toumani Camara",
-    "position": "F",
-    "shirt": "33",
-    "status": "ACT"
-  },
-  {
-    "id": 4592435,
-    "name": "Carlson",
-    "fullName": "Branden Carlson",
-    "position": "C",
-    "shirt": "10",
-    "status": "ACT"
-  },
-  {
-    "id": 5081727,
-    "name": "Cissoko",
-    "fullName": "Sidy Cissoko",
-    "position": "G",
-    "shirt": "91",
-    "status": "ACT"
-  },
-  {
-    "id": 5105565,
-    "name": "Clingan",
-    "fullName": "Donovan Clingan",
-    "position": "C",
-    "shirt": "23",
-    "status": "ACT"
-  },
-  {
-    "id": 5217746,
-    "name": "Yang",
-    "fullName": "Yang Hansen",
-    "position": "C",
-    "shirt": "16",
-    "status": "ACT"
-  },
-  {
     "id": 4683678,
-    "name": "Scoot",
+    "name": "Henderson",
     "fullName": "Scoot Henderson",
     "position": "G",
     "shirt": "00",
-    "status": "ACT"
-  },
-  {
-    "id": 3995,
-    "name": "Jrue",
-    "fullName": "Jrue Holiday",
-    "position": "G",
-    "shirt": "5",
-    "status": "GTD"
-  },
-  {
-    "id": 4578893,
-    "name": "Krejci",
-    "fullName": "Vit Krejci",
-    "position": "G",
-    "shirt": "27",
     "status": "ACT"
   },
   {
@@ -88,43 +24,11 @@
     "status": "ACT"
   },
   {
-    "id": 4066399,
-    "name": "Potter",
-    "fullName": "Micah Potter",
-    "position": "C",
-    "shirt": "9",
-    "status": "GTD"
-  },
-  {
-    "id": 4914336,
-    "name": "Sharpe",
-    "fullName": "Shaedon Sharpe",
-    "position": "G",
-    "shirt": "17",
-    "status": "OUT"
-  },
-  {
-    "id": 4610139,
-    "name": "Sochan",
-    "fullName": "Jeremy Sochan",
-    "position": "F",
-    "shirt": "4",
-    "status": "ACT"
-  },
-  {
     "id": 4593043,
     "name": "Tonje",
     "fullName": "John Tonje",
     "position": "F",
     "shirt": "2",
-    "status": "ACT"
-  },
-  {
-    "id": 4066211,
-    "name": "Williams",
-    "fullName": "Robert Williams III",
-    "position": "C",
-    "shirt": "35",
     "status": "ACT"
   },
   {
@@ -136,11 +40,107 @@
     "status": "GTD"
   },
   {
+    "id": 4610139,
+    "name": "Sochan",
+    "fullName": "Jeremy Sochan",
+    "position": "F",
+    "shirt": "4",
+    "status": "ACT"
+  },
+  {
+    "id": 3995,
+    "name": "Holiday",
+    "fullName": "Jrue Holiday",
+    "position": "G",
+    "shirt": "5",
+    "status": "GTD"
+  },
+  {
+    "id": 4683021,
+    "name": "Avdija",
+    "fullName": "Deni Avdija",
+    "position": "F",
+    "shirt": "8",
+    "status": "ACT"
+  },
+  {
+    "id": 4066399,
+    "name": "Potter",
+    "fullName": "Micah Potter",
+    "position": "C",
+    "shirt": "9",
+    "status": "GTD"
+  },
+  {
+    "id": 4592435,
+    "name": "Carlson",
+    "fullName": "Branden Carlson",
+    "position": "C",
+    "shirt": "10",
+    "status": "ACT"
+  },
+  {
+    "id": 5217746,
+    "name": "Yang",
+    "fullName": "Yang Hansen",
+    "position": "C",
+    "shirt": "16",
+    "status": "ACT"
+  },
+  {
+    "id": 4914336,
+    "name": "Sharpe",
+    "fullName": "Shaedon Sharpe",
+    "position": "G",
+    "shirt": "17",
+    "status": "OUT"
+  },
+  {
+    "id": 5105565,
+    "name": "Clingan",
+    "fullName": "Donovan Clingan",
+    "position": "C",
+    "shirt": "23",
+    "status": "ACT"
+  },
+  {
+    "id": 4578893,
+    "name": "Krejci",
+    "fullName": "Vit Krejci",
+    "position": "G",
+    "shirt": "27",
+    "status": "ACT"
+  },
+  {
     "id": 4703889,
     "name": "Kent",
     "fullName": "Jayson Kent",
     "position": "G",
     "shirt": "29",
+    "status": "ACT"
+  },
+  {
+    "id": 4431736,
+    "name": "Camara",
+    "fullName": "Toumani Camara",
+    "position": "F",
+    "shirt": "33",
+    "status": "ACT"
+  },
+  {
+    "id": 4066211,
+    "name": "Williams",
+    "fullName": "Robert Williams III",
+    "position": "C",
+    "shirt": "35",
+    "status": "ACT"
+  },
+  {
+    "id": 5081727,
+    "name": "Cissoko",
+    "fullName": "Sidy Cissoko",
+    "position": "G",
+    "shirt": "91",
     "status": "ACT"
   }
 ]
