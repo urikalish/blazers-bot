@@ -37,7 +37,7 @@
     "fullName": "Chris Youngblood",
     "position": "G",
     "shirt": "3",
-    "status": "GTD"
+    "status": "OUT"
   },
   {
     "id": 4610139,
@@ -53,7 +53,7 @@
     "fullName": "Jrue Holiday",
     "position": "G",
     "shirt": "5",
-    "status": "GTD"
+    "status": "ACT"
   },
   {
     "id": 4683021,
@@ -61,7 +61,7 @@
     "fullName": "Deni Avdija",
     "position": "F",
     "shirt": "8",
-    "status": "ACT"
+    "status": "GTD"
   },
   {
     "id": 4066399,
@@ -77,7 +77,7 @@
     "fullName": "Branden Carlson",
     "position": "C",
     "shirt": "10",
-    "status": "ACT"
+    "status": "OUT"
   },
   {
     "id": 5217746,
